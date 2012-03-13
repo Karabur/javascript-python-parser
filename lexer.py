@@ -17,11 +17,12 @@ def isLineTerm(c):
 
 
 def isIDStart(c):
-    return c.isalpha() or c in'_$'
+    return c.isalpha() or c in '_$'
 
 
 def isIDPart(c):
     return isIDStart(c) or c.isnumeric()
+
 
 def isWS(c):
     return c in ' \t\n\r\f\v'
@@ -42,27 +43,62 @@ class Lexer:
         self.eof = False
 
     def getNext(self):
-        if self.forward >= len(self.src):
-            return TOK_EOF, ''
-        self.pointer = self.forward
-        if isWS(self.src[self.forward]):
-            self.forward += 1
-            return TOK_WS, ''
-
-        if self.src[self.forward] == '/':
-            self.forward += 1
-            if self.src[self.forward] == '/':
-                return self.getSingleComment()
-            if self.src[self.forward] == '*':
-                return self.getMultiComment()
-
-        if isIDStart(self.src[self.forward]):
-            self.forward += 1
-            while isIDPart(self.src[self.forward]):
+        try:
+            if self.forward >= len(self.src):
+                return TOK_EOF, ''
+            self.pointer = self.forward
+            if isWS(self.src[self.forward]):
                 self.forward += 1
-            return TOK_ID, self.src[self.pointer: self.forward]
+                return TOK_WS, ''
 
-        self.forward += 1
+            if self.src[self.forward] == '/':
+                self.forward += 1
+                if self.src[self.forward] == '/':
+                    return self.getSingleComment()
+                if self.src[self.forward] == '*':
+                    return self.getMultiComment()
+
+            if isIDStart(self.src[self.forward]):
+                self.forward += 1
+                while isIDPart(self.src[self.forward]):
+                    self.forward += 1
+                return TOK_ID, self.src[self.pointer: self.forward]
+
+            if self.src[self.forward] == '0':
+                self.forward += 1
+                if self.forward < len(self.src) and self.src[self.forward] == '.':
+                    self.forward += 1
+                    return self.getNumericAfterDot()
+                #hex digits
+                if self.forward < len(self.src) and self.src[self.forward] in 'xX':
+                    self.forward += 1
+                    if self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef':
+                        while self.forward<len(self.src) and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
+                            self.forward += 1
+                        return self.extractNumeric()
+                    raise Exception('Illegal')
+                return self.extractNumeric()
+
+            if self.src[self.forward].isnumeric() and self.src[self.forward] != '0':
+                self.forward += 1
+                while self.forward < len(self.src) and self.src[self.forward].isdigit():
+                    self.forward += 1
+                if self.forward < len(self.src) and self.src[self.forward] == '.':
+                    self.forward += 1
+                    return self.getNumericAfterDot()
+                if self.forward < len(self.src) and self.src[self.forward] in 'eE':
+                    self.forward += 1
+                    return self.getNumericExp()
+                return self.extractNumeric()
+
+            if self.src[self.forward] == '.':
+                self.forward += 1
+                if self.src[self.forward].isnumeric():
+                    return self.getNumericAfterDot()
+
+            self.forward += 1
+        except:
+            pass
         return TOK_UNKNOWN, self.src[self.pointer: self.forward]
 
 
@@ -100,8 +136,29 @@ class Lexer:
 
     def getToken(self):
         token = self.getNext()
-        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0]==TOK_WS:
+        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
             token = self.getNext()
         if token[0] == TOK_MULTINL_COMMENT:
             return TOK_NL, ''
         return token
+
+    def extractNumeric(self):
+        return TOK_NUMERIC, self.src[self.pointer:self.forward]
+
+    def getNumericAfterDot(self):
+        while self.forward < len(self.src) and self.src[self.forward].isnumeric():
+            self.forward += 1
+        if self.forward < len(self.src) and self.src[self.forward] in 'eE':
+            self.forward += 1
+            return self.getNumericExp()
+        return self.extractNumeric()
+
+
+    def getNumericExp(self):
+        if self.src[self.forward] in '+-':
+            self.forward += 1
+        if self.src[self.forward].isnumeric():
+            while self.forward < len(self.src) and self.src[self.forward].isnumeric():
+                self.forward += 1
+            return self.extractNumeric()
+        return TOK_UNKNOWN, ''

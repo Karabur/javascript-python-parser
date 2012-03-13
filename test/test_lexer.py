@@ -41,3 +41,44 @@ class LexerTestCase(unittest.TestCase):
         lex.setSrc(" \t  \v  ")
         self.assertEqual(lex.getToken(), (lexer.TOK_EOF , ''))
 
+    def testZeroNumber(self):
+        lex = lexer.Lexer()
+        lex.setSrc("0")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0'))
+
+    def testSimpleNumber(self):
+        lex = lexer.Lexer()
+        lex.setSrc("3213")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '3213'))
+
+    def testFloatNumbers(self):
+        lex = lexer.Lexer()
+        lex.setSrc("22.34 .232")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '22.34'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '.232'))
+        lex.setSrc("0. 0.3")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0.'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0.3'))
+        lex.setSrc("22. 44.")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '22.'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '44.'))
+
+    def testExponentialNumbers(self):
+        lex = lexer.Lexer()
+        lex.setSrc("22e3 22.34e33 .232E23")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '22e3'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '22.34e33'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '.232E23'))
+        lex.setSrc("22.34e-33 .232E+23")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '22.34e-33'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '.232E+23'))
+        lex.setSrc("0.e+0")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0.e+0'))
+
+    def testHexNumbers(self):
+        lex = lexer.Lexer()
+        lex.setSrc("0x233aD")
+        self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0x233aD'))
+
+
+
