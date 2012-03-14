@@ -80,5 +80,13 @@ class LexerTestCase(unittest.TestCase):
         lex.setSrc("0x233aD")
         self.assertEqual(lex.getToken(), (lexer.TOK_NUMERIC , '0x233aD'))
 
+    def testNotIDStartAfterNumeric(self):
+        lex = lexer.Lexer()
+        lex.setSrc("0.233a")
+        self.assertEqual(lex.getToken(), (lexer.TOK_ERROR , '0.233'))
+        lex.setSrc("233b")
+        self.assertEqual(lex.getToken(), (lexer.TOK_ERROR , '233'))
+        lex.setSrc("0x233br")
+        self.assertEqual(lex.getToken(), (lexer.TOK_ERROR , '0x233b'))
 
 

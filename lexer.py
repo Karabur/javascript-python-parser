@@ -10,6 +10,7 @@ TOK_WS = 7
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
+TOK_ERROR = 1001
 
 
 def isLineTerm(c):
@@ -143,6 +144,8 @@ class Lexer:
         return token
 
     def extractNumeric(self):
+        if self.forward<len(self.src) and isIDStart(self.src[self.forward]):
+            return TOK_ERROR , self.src[self.pointer:self.forward]
         return TOK_NUMERIC, self.src[self.pointer:self.forward]
 
     def getNumericAfterDot(self):
