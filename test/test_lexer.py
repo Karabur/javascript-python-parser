@@ -33,8 +33,9 @@ class LexerTestCase(unittest.TestCase):
     def testID(self):
         lex = lexer.Lexer()
 
-        lex.setSrc('aA$34_a 33')
+        lex.setSrc('aA$34_a bdd')
         self.assertEqual(lex.getToken(), (lexer.TOK_ID, 'aA$34_a'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_ID, 'bdd'))
 
     def testWhitespaceSkipping(self):
         lex = lexer.Lexer()
@@ -89,4 +90,27 @@ class LexerTestCase(unittest.TestCase):
         lex.setSrc("0x233br")
         self.assertEqual(lex.getToken(), (lexer.TOK_ERROR , '0x233b'))
 
+    def testReservedWords(self):
+        lex = lexer.Lexer()
+        rw = ['break','do','instanceof','typeof','case','else','new','var','catch','finally','return','void','continue','for','switch','while','debugger','function','this','with','default','if','throw','delete','in','try']
+        lex.setSrc(' '.join(rw))
+        for w in rw:
+            self.assertEqual(lex.getToken(), (lexer.TOK_RESERVED , w))
 
+    def testFutureReservedWords(self):
+        lex = lexer.Lexer()
+        rw = ['class','enum','extends','super','const','export','import']
+        lex.setSrc(' '.join(rw))
+        for w in rw:
+            self.assertEqual(lex.getToken(), (lexer.TOK_FUTURE_RESERVED , w))
+    def testFutureStrictReservedWords(self):
+        lex = lexer.Lexer()
+        rw = ['implements','let','private','public','yield','interface','package','protected','static']
+        lex.strictMode = True
+        lex.setSrc(' '.join(rw))
+        for w in rw:
+            self.assertEqual(lex.getToken(), (lexer.TOK_FUTURE_RESERVED , w))
+        lex.strictMode = False
+        lex.setSrc(' '.join(rw))
+        for w in rw:
+            self.assertEqual(lex.getToken(), (lexer.TOK_ID , w))

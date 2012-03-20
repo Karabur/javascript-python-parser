@@ -1,3 +1,9 @@
+#list of reserved words
+RESERVED_WORDS = ['break','do','instanceof','typeof','case','else','new','var','catch','finally','return','void','continue','for','switch','while','debugger','function','this','with','default','if','throw','delete','in','try']
+FUTURE_RESERVED_WORDS = ['class','enum','extends','super','const','export','import']
+FUTURE_STRICT_RESERVED_WORDS = ['implements','let','private','public','yield','interface','package','protected','static']
+
+
 #tokens
 
 TOK_NL = 1
@@ -7,6 +13,8 @@ TOK_MULTINL_COMMENT = 4
 TOK_ID = 5
 TOK_NUMERIC = 6
 TOK_WS = 7
+TOK_RESERVED = 8
+TOK_FUTURE_RESERVED = 9
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
@@ -36,6 +44,7 @@ class Lexer:
         self.pointer = -1
         self.forward = -1
         self.eof = False
+        self.strictMode = False
 
     def setSrc(self, js):
         self.src = js
@@ -61,9 +70,9 @@ class Lexer:
 
             if isIDStart(self.src[self.forward]):
                 self.forward += 1
-                while isIDPart(self.src[self.forward]):
+                while self.forward < len(self.src) and isIDPart(self.src[self.forward]):
                     self.forward += 1
-                return TOK_ID, self.src[self.pointer: self.forward]
+                return self.getIDOrReserved()
 
             if self.src[self.forward] == '0':
                 self.forward += 1
@@ -165,3 +174,16 @@ class Lexer:
                 self.forward += 1
             return self.extractNumeric()
         return TOK_UNKNOWN, ''
+
+    def getIDOrReserved(self):
+        id = self.src[self.pointer: self.forward]
+        if id in RESERVED_WORDS:
+            return TOK_RESERVED , self.src[self.pointer: self.forward]
+
+        if id in FUTURE_RESERVED_WORDS:
+            return TOK_FUTURE_RESERVED , self.src[self.pointer: self.forward]
+
+        if self.strictMode and id in FUTURE_STRICT_RESERVED_WORDS:
+            return TOK_FUTURE_RESERVED , self.src[self.pointer: self.forward]
+
+        return TOK_ID , self.src[self.pointer: self.forward]
