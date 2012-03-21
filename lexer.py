@@ -2,6 +2,7 @@
 RESERVED_WORDS = ['break','do','instanceof','typeof','case','else','new','var','catch','finally','return','void','continue','for','switch','while','debugger','function','this','with','default','if','throw','delete','in','try']
 FUTURE_RESERVED_WORDS = ['class','enum','extends','super','const','export','import']
 FUTURE_STRICT_RESERVED_WORDS = ['implements','let','private','public','yield','interface','package','protected','static']
+PUNCTUATORS = ['{','}','(',')','[',']','.',';',',','<','>','<=','>=','==','!=','===','!==','+','-','*','%','++','--','<<','>>','>>>','&','|','^','!','~','&&','||','?',':','=','+=','-=','*=','%=','<<=','>>=','>>>=','&=','|=','^=']
 
 
 #tokens
@@ -15,6 +16,7 @@ TOK_NUMERIC = 6
 TOK_WS = 7
 TOK_RESERVED = 8
 TOK_FUTURE_RESERVED = 9
+TOK_PUNCTUATOR = 10
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
@@ -105,6 +107,13 @@ class Lexer:
                 self.forward += 1
                 if self.src[self.forward].isnumeric():
                     return self.getNumericAfterDot()
+                return TOK_PUNCTUATOR , '.'
+
+            #check punctuators - must be after all rules which starts from one of punctuator
+            for i in [4,3,2,1]:
+                if (self.forward+i<=len(self.src)) and self.src[self.forward:self.forward + i] in PUNCTUATORS:
+                    self.forward += i
+                    return TOK_PUNCTUATOR , self.src[self.pointer:self.forward]
 
             self.forward += 1
         except:

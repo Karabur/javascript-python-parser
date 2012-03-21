@@ -107,10 +107,17 @@ class LexerTestCase(unittest.TestCase):
         lex = lexer.Lexer()
         rw = ['implements','let','private','public','yield','interface','package','protected','static']
         lex.strictMode = True
-        lex.setSrc(' '.join(rw))
+        lex.setSrc('  '.join(rw))
         for w in rw:
             self.assertEqual(lex.getToken(), (lexer.TOK_FUTURE_RESERVED , w))
         lex.strictMode = False
         lex.setSrc(' '.join(rw))
         for w in rw:
             self.assertEqual(lex.getToken(), (lexer.TOK_ID , w))
+
+    def testPunctuator(self):
+        lex = lexer.Lexer()
+        ps = ['^=','{','}','(',')','[',']','.',';',',','<','>','<=','>=','==','!=','===','!==','+','-','*','%','++','--','<<','>>','>>>','&','|','^','!','~','&&','||','?',':','=','+=','-=','*=','%=','<<=','>>=','>>>=','&=','|=','^=']
+        lex.setSrc(' '.join(ps))
+        for p in ps:
+            self.assertEqual(lex.getToken(), (lexer.TOK_PUNCTUATOR , p))
