@@ -17,6 +17,8 @@ TOK_WS = 7
 TOK_RESERVED = 8
 TOK_FUTURE_RESERVED = 9
 TOK_PUNCTUATOR = 10
+TOK_NULL = 11
+TOK_BOOL = 12
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
@@ -194,5 +196,14 @@ class Lexer:
 
         if self.strictMode and id in FUTURE_STRICT_RESERVED_WORDS:
             return TOK_FUTURE_RESERVED , self.src[self.pointer: self.forward]
+
+        if id == 'null':
+            return TOK_NULL , self.src[self.pointer: self.forward]
+
+        if id == 'true':
+            return TOK_BOOL , self.src[self.pointer: self.forward]
+        if id == 'false':
+            return TOK_BOOL , self.src[self.pointer: self.forward]
+
 
         return TOK_ID , self.src[self.pointer: self.forward]

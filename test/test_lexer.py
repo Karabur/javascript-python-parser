@@ -121,3 +121,15 @@ class LexerTestCase(unittest.TestCase):
         lex.setSrc(' '.join(ps))
         for p in ps:
             self.assertEqual(lex.getToken(), (lexer.TOK_PUNCTUATOR , p))
+
+    def testNull(self):
+        lex = lexer.Lexer()
+        lex.setSrc('null null')
+        self.assertEqual(lex.getToken(), (lexer.TOK_NULL, 'null'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_NULL, 'null'))
+
+    def testBool(self):
+        lex = lexer.Lexer()
+        lex.setSrc('true false')
+        self.assertEqual(lex.getToken(), (lexer.TOK_BOOL, 'true'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_BOOL, 'false'))
