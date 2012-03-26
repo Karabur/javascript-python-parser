@@ -1,8 +1,12 @@
 #list of reserved words
-RESERVED_WORDS = ['break','do','instanceof','typeof','case','else','new','var','catch','finally','return','void','continue','for','switch','while','debugger','function','this','with','default','if','throw','delete','in','try']
-FUTURE_RESERVED_WORDS = ['class','enum','extends','super','const','export','import']
-FUTURE_STRICT_RESERVED_WORDS = ['implements','let','private','public','yield','interface','package','protected','static']
-PUNCTUATORS = ['{','}','(',')','[',']','.',';',',','<','>','<=','>=','==','!=','===','!==','+','-','*','%','++','--','<<','>>','>>>','&','|','^','!','~','&&','||','?',':','=','+=','-=','*=','%=','<<=','>>=','>>>=','&=','|=','^=']
+RESERVED_WORDS = ['break', 'do', 'instanceof', 'typeof', 'case', 'else', 'new', 'var', 'catch', 'finally', 'return', 'void', 'continue', 'for',
+                  'switch', 'while', 'debugger', 'function', 'this', 'with', 'default', 'if', 'throw', 'delete', 'in', 'try']
+FUTURE_RESERVED_WORDS = ['class', 'enum', 'extends', 'super', 'const', 'export', 'import']
+FUTURE_STRICT_RESERVED_WORDS = ['implements', 'let', 'private', 'public', 'yield', 'interface', 'package', 'protected', 'static']
+PUNCTUATORS = ['{', '}', '(', ')', '[', ']', '.', ';', ',', '<', '>', '<=', '>=', '==', '!=', '===', '!==', '+', '-', '*', '%', '++', '--', '<<', '>>'
+    , '>>>', '&', '|', '^', '!', '~', '&&', '||', '?', ':', '=', '+=', '-=', '*=', '%=', '<<=', '>>=', '>>>=', '&=', '|=', '^=']
+SINGLE_CHARACTER_ESC_SEQ = {'b': '\u0008', 't': '\u0009', 'n': '\u000A', 'v': '\u000B', 'f': '\u000C', 'r': '\u000D', '"': '\u0022', '\'': '\u0027',
+                            '\\': '\u005c'}
 
 
 #tokens
@@ -19,10 +23,14 @@ TOK_FUTURE_RESERVED = 9
 TOK_PUNCTUATOR = 10
 TOK_NULL = 11
 TOK_BOOL = 12
+TOK_STRING = 13
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
 TOK_ERROR = 1001
+
+def isHexDigit(chr):
+    return chr.isdigit() or chr.lower() in 'abcdef'
 
 
 def isLineTerm(c):
@@ -83,11 +91,11 @@ class Lexer:
                 if self.forward < len(self.src) and self.src[self.forward] == '.':
                     self.forward += 1
                     return self.getNumericAfterDot()
-                #hex digits
+                    #hex digits
                 if self.forward < len(self.src) and self.src[self.forward] in 'xX':
                     self.forward += 1
-                    if self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef':
-                        while self.forward<len(self.src) and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
+                    if isHexDigit(self.src[self.forward]):
+                        while self.forward < len(self.src) and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
                             self.forward += 1
                         return self.extractNumeric()
                     raise Exception('Illegal')
@@ -109,14 +117,17 @@ class Lexer:
                 self.forward += 1
                 if self.src[self.forward].isnumeric():
                     return self.getNumericAfterDot()
-                return TOK_PUNCTUATOR , '.'
+                return TOK_PUNCTUATOR, '.'
 
             #check punctuators - must be after all rules which starts from one of punctuator
-            for i in [4,3,2,1]:
-                if (self.forward+i<=len(self.src)) and self.src[self.forward:self.forward + i] in PUNCTUATORS:
+            for i in [4, 3, 2, 1]:
+                if (self.forward + i <= len(self.src)) and self.src[self.forward:self.forward + i] in PUNCTUATORS:
                     self.forward += i
-                    return TOK_PUNCTUATOR , self.src[self.pointer:self.forward]
+                    return TOK_PUNCTUATOR, self.src[self.pointer:self.forward]
 
+            #string literals
+            if self.src[self.forward] in ['"', "'"]:
+                return self.getString()
             self.forward += 1
         except:
             pass
@@ -164,8 +175,8 @@ class Lexer:
         return token
 
     def extractNumeric(self):
-        if self.forward<len(self.src) and isIDStart(self.src[self.forward]):
-            return TOK_ERROR , self.src[self.pointer:self.forward]
+        if self.forward < len(self.src) and isIDStart(self.src[self.forward]):
+            return TOK_ERROR, self.src[self.pointer:self.forward]
         return TOK_NUMERIC, self.src[self.pointer:self.forward]
 
     def getNumericAfterDot(self):
@@ -189,21 +200,68 @@ class Lexer:
     def getIDOrReserved(self):
         id = self.src[self.pointer: self.forward]
         if id in RESERVED_WORDS:
-            return TOK_RESERVED , self.src[self.pointer: self.forward]
+            return TOK_RESERVED, self.src[self.pointer: self.forward]
 
         if id in FUTURE_RESERVED_WORDS:
-            return TOK_FUTURE_RESERVED , self.src[self.pointer: self.forward]
+            return TOK_FUTURE_RESERVED, self.src[self.pointer: self.forward]
 
         if self.strictMode and id in FUTURE_STRICT_RESERVED_WORDS:
-            return TOK_FUTURE_RESERVED , self.src[self.pointer: self.forward]
+            return TOK_FUTURE_RESERVED, self.src[self.pointer: self.forward]
 
         if id == 'null':
-            return TOK_NULL , self.src[self.pointer: self.forward]
+            return TOK_NULL, self.src[self.pointer: self.forward]
 
         if id == 'true':
-            return TOK_BOOL , self.src[self.pointer: self.forward]
+            return TOK_BOOL, self.src[self.pointer: self.forward]
         if id == 'false':
-            return TOK_BOOL , self.src[self.pointer: self.forward]
+            return TOK_BOOL, self.src[self.pointer: self.forward]
 
+        return TOK_ID, self.src[self.pointer: self.forward]
 
-        return TOK_ID , self.src[self.pointer: self.forward]
+    def getString(self):
+        quote = self.src[self.forward]
+        token = ''
+        self.forward += 1
+        try:
+            while self.forward < len(self.src) and self.src[self.forward] != quote:
+                if self.src[self.forward] == '\\':
+                    self.forward += 1
+                    if isLineTerm(self.src[self.forward]):
+                        self.forward += 1
+                    else:
+                        token += self.getEscapeSeq()
+                else:
+                    token += self.src[self.forward]
+                    self.forward += 1
+            if self.forward < len(self.src) and self.src[self.forward] == quote:
+                self.forward += 1
+                return TOK_STRING, token
+        except:
+            pass
+        return TOK_ERROR, self.src[self.pointer:self.forward]
+
+    def getEscapeSeq(self):
+        if self.forward < len(self.src):
+            #single escape character
+            if self.src[self.forward] in SINGLE_CHARACTER_ESC_SEQ:
+                self.forward += 1
+                return SINGLE_CHARACTER_ESC_SEQ[self.src[self.forward - 1]]
+            if not isLineTerm(self.src[self.forward]) and not self.src[self.forward].isnumeric() and not self.src[self.forward] in 'xu':
+                self.forward += 1
+                return self.src[self.forward - 1]
+            if self.src[self.forward] == 'u':
+                if isHexDigit(self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]) and isHexDigit(
+                    self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]):
+                    code = 4096 * int(self.src[self.forward + 1]) + 256 * int(self.src[self.forward + 2]) + 16 * int(self.src[self.forward + 3]) + int(self.src[self.forward + 4])
+                    self.forward += 5
+                    return chr(code)
+            if self.src[self.forward] == 'x':
+                if isHexDigit(self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]):
+                    code = 16 * int(self.src[self.forward + 1]) + int(self.src[self.forward + 2])
+                    self.forward += 3
+                    return chr(code)
+            if self.src[self.forward] == '0' and self.forward<len(self.src)-1 and not self.src[self.forward+1].isdigit():
+                self.forward += 1
+                return '\0'
+
+        raise Exception('error parsing string escape sequence')

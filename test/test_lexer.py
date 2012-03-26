@@ -133,3 +133,34 @@ class LexerTestCase(unittest.TestCase):
         lex.setSrc('true false')
         self.assertEqual(lex.getToken(), (lexer.TOK_BOOL, 'true'))
         self.assertEqual(lex.getToken(), (lexer.TOK_BOOL, 'false'))
+
+    def testStringLiteral(self):
+        lex = lexer.Lexer()
+        lex.setSrc('"asdasd" "ss\\"" \'\\s\'')
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, 'asdasd'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, 'ss"'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, 's'))
+
+        lex.setSrc('"\\\\" "\\\'" "\\"" "\\b" "\\t" "\\n" "\\v" "\\f" "\\r"')
+
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\\'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\''))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '"'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\b'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\t'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\n'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\v'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\f'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\r'))
+
+        lex.setSrc('"asd\\\ndd"')
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, 'asddd'))
+
+        lex.setSrc('"dd\\u2345" \'"s\\x34\'')
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, 'dd\u2345'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '"s\x34'))
+
+        lex.setSrc("'\\0' '\\0a'")
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\0'))
+        self.assertEqual(lex.getToken(), (lexer.TOK_STRING, '\0a'))
+
