@@ -24,6 +24,8 @@ TOK_PUNCTUATOR = 10
 TOK_NULL = 11
 TOK_BOOL = 12
 TOK_STRING = 13
+TOK_REGEXP = 14
+TOK_DIV_PUNCTUATOR = 15
 
 TOK_UNKNOWN = 999
 TOK_EOF = 1000
@@ -64,7 +66,7 @@ class Lexer:
         self.forward = 0
         self.eof = False
 
-    def getNext(self):
+    def getNext(self, REMode = False):
         try:
             if self.forward >= len(self.src):
                 return TOK_EOF, ''
@@ -79,6 +81,13 @@ class Lexer:
                     return self.getSingleComment()
                 if self.src[self.forward] == '*':
                     return self.getMultiComment()
+
+                if REMode:
+                    return self.getRegExp()
+                else:
+                    if self.forward < len(self.src) and self.src[self.forward] == '=':
+                        self.forward += 1
+                    return TOK_DIV_PUNCTUATOR, self.src[self.pointer:self.forward]
 
             if isIDStart(self.src[self.forward]):
                 self.forward += 1
@@ -174,6 +183,14 @@ class Lexer:
             return TOK_NL, ''
         return token
 
+    def getRegExpToken(self):
+        token = self.getNext()
+        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
+            token = self.getNext(true)
+        if token[0] == TOK_MULTINL_COMMENT:
+            return TOK_NL, ''
+        return token
+
     def extractNumeric(self):
         if self.forward < len(self.src) and isIDStart(self.src[self.forward]):
             return TOK_ERROR, self.src[self.pointer:self.forward]
@@ -252,7 +269,8 @@ class Lexer:
             if self.src[self.forward] == 'u':
                 if isHexDigit(self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]) and isHexDigit(
                     self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]):
-                    code = 4096 * int(self.src[self.forward + 1]) + 256 * int(self.src[self.forward + 2]) + 16 * int(self.src[self.forward + 3]) + int(self.src[self.forward + 4])
+                    code = 4096 * int(self.src[self.forward + 1]) + 256 * int(self.src[self.forward + 2]) + 16 * int(
+                        self.src[self.forward + 3]) + int(self.src[self.forward + 4])
                     self.forward += 5
                     return chr(code)
             if self.src[self.forward] == 'x':
@@ -260,7 +278,7 @@ class Lexer:
                     code = 16 * int(self.src[self.forward + 1]) + int(self.src[self.forward + 2])
                     self.forward += 3
                     return chr(code)
-            if self.src[self.forward] == '0' and self.forward<len(self.src)-1 and not self.src[self.forward+1].isdigit():
+            if self.src[self.forward] == '0' and self.forward < len(self.src) - 1 and not self.src[self.forward + 1].isdigit():
                 self.forward += 1
                 return '\0'
 
