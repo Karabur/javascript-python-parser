@@ -167,7 +167,13 @@ class LexerTestCase(unittest.TestCase):
     def testRegExp(self):
         lex=lexer.Lexer()
         lex.setSrc('/asddd/iuy')
-#        self.assertEqual(lex.getRegExpToken(), (lexer.TOK_REGEXP,'/asddd/iuy'))
+        self.assertEqual(lex.getRegExpToken(), (lexer.TOK_REGEXP,'/asddd/iuy'))
+        lex.setSrc('/asddd/')
+        self.assertEqual(lex.getRegExpToken(), (lexer.TOK_REGEXP,'/asddd/'))
+        lex.setSrc('/\\dasddd/')
+        self.assertEqual(lex.getRegExpToken(), (lexer.TOK_REGEXP,'/\\dasddd/'))
+        lex.setSrc('/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/')
+        self.assertEqual(lex.getRegExpToken(), (lexer.TOK_REGEXP,'/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/'))
 
     def testDivPunctuator(self):
         lex=lexer.Lexer()

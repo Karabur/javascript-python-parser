@@ -66,7 +66,7 @@ class Lexer:
         self.forward = 0
         self.eof = False
 
-    def getNext(self, REMode = False):
+    def getNext(self, REMode=False):
         try:
             if self.forward >= len(self.src):
                 return TOK_EOF, ''
@@ -184,9 +184,9 @@ class Lexer:
         return token
 
     def getRegExpToken(self):
-        token = self.getNext()
+        token = self.getNext(True)
         while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
-            token = self.getNext(true)
+            token = self.getNext(True)
         if token[0] == TOK_MULTINL_COMMENT:
             return TOK_NL, ''
         return token
@@ -283,3 +283,53 @@ class Lexer:
                 return '\0'
 
         raise Exception('error parsing string escape sequence')
+
+    def getRegExp(self):
+        #RegularExpressionFirstChar
+        if not isLineTerm(self.src[self.forward]) and not self.src[self.forward] in '*\\/[':
+            self.forward += 1
+        elif self.src[self.forward] == '\\':
+            self.forward += 1
+            if isLineTerm(self.src[self.forward]):
+                return TOK_ERROR, self.src[self.pointer:self.forward]
+            self.forward += 1
+        elif self.src[self.forward] == '[':
+            self.getRegExpClass()
+        else:
+            return TOK_ERROR, self.src[self.pointer:self.forward]
+            #RegularExpressionChars
+
+        while self.src[self.forward] != '/':
+            if not isLineTerm(self.src[self.forward]) and not self.src[self.forward] in '\\/[':
+                self.forward += 1
+            elif self.src[self.forward] == '\\':
+                self.forward += 1
+                if isLineTerm(self.src[self.forward]):
+                    return TOK_ERROR, self.src[self.pointer:self.forward]
+                self.forward += 1
+            elif self.src[self.forward] == '[':
+                self.getRegExpClass()
+            else:
+                return TOK_ERROR, self.src[self.pointer:self.forward]
+
+        self.forward += 1
+
+        #RegularExpressionFlags
+        while self.forward < len(self.src) and isIDPart(self.src[self.forward]):
+            self.forward += 1
+        return TOK_REGEXP, self.src[self.pointer:self.forward]
+
+
+    def getRegExpClass(self):
+        self.forward += 1
+        while self.src[self.forward] != ']':
+            if self.src[self.forward] == '\\':
+                self.forward += 1
+                if isLineTerm(self.src[self.forward]):
+                    raise 'Error parsing RegExp class - unsuspected LineTerminator'
+                self.forward += 1
+            elif not isLineTerm(self.src[self.forward]) and not self.src[self.forward] in ']\\':
+                self.forward += 1
+            else:
+                raise 'Error parsing RegExp'
+        self.forward += 1
