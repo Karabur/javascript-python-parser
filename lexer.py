@@ -36,7 +36,7 @@ def isHexDigit(chr):
 
 
 def isLineTerm(c):
-    return c == '\n'
+    return c in '\n\u000a\u000d\u2028\u2029'
 
 
 def isIDStart(c):
@@ -48,7 +48,7 @@ def isIDPart(c):
 
 
 def isWS(c):
-    return c in ' \t\n\r\f\v'
+    return c in ['\u0020','\u0009','\n','\r','\u000c','\u000b','\u00a0','\u1680','\u2000','\u2001','\u2002','\u2003','\u2004','\u2005','\u2006','\u2007','\u2008','\u2009','\u200A','\u200B','\u202F','\u3000']
 
 
 class Lexer:
@@ -326,10 +326,10 @@ class Lexer:
             if self.src[self.forward] == '\\':
                 self.forward += 1
                 if isLineTerm(self.src[self.forward]):
-                    raise 'Error parsing RegExp class - unsuspected LineTerminator'
+                    raise Exception('Error parsing RegExp class - unsuspected LineTerminator')
                 self.forward += 1
             elif not isLineTerm(self.src[self.forward]) and not self.src[self.forward] in ']\\':
                 self.forward += 1
             else:
-                raise 'Error parsing RegExp'
+                raise Exception('Error parsing RegExp')
         self.forward += 1
