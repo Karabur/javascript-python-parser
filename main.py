@@ -1,4 +1,4 @@
-from lexer import Lexer
+from JSLexer import Lexer
 
 __author__ = 'Robur'
 

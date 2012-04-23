@@ -60,51 +60,60 @@ class Lexer:
         self.eof = False
         self.strictMode = False
 
+    def isEOF(self):
+        return self.forward >= len(self.src)
+
+    def lookup(self):
+        return self.src[self.forward]
+
     def setSrc(self, js):
         self.src = js
         self.pointer = 0
         self.forward = 0
         self.eof = False
 
+    def extract(self, tokenType):
+        return tokenType, self.src[self.pointer:self.forward]
+
     def getNext(self, REMode=False):
         try:
-            if self.forward >= len(self.src):
+            if self.isEOF():
                 return TOK_EOF, ''
             self.pointer = self.forward
-            if isWS(self.src[self.forward]):
+            if isWS(self.lookup()):
                 self.forward += 1
                 return TOK_WS, ''
 
-            if self.src[self.forward] == '/':
+            if self.lookup() == '/':
                 self.forward += 1
-                if self.src[self.forward] == '/':
+                if self.lookup() == '/':
                     return self.getSingleComment()
-                if self.src[self.forward] == '*':
+                if self.lookup() == '*':
                     return self.getMultiComment()
 
                 if REMode:
                     return self.getRegExp()
                 else:
-                    if self.forward < len(self.src) and self.src[self.forward] == '=':
+                    if not self.isEOF() and self.src[self.forward] == '=':
                         self.forward += 1
-                    return TOK_DIV_PUNCTUATOR, self.src[self.pointer:self.forward]
+                    return self.extract(TOK_DIV_PUNCTUATOR)
 
             if isIDStart(self.src[self.forward]):
                 self.forward += 1
-                while self.forward < len(self.src) and isIDPart(self.src[self.forward]):
+                while not self.isEOF() and isIDPart(self.src[self.forward]):
                     self.forward += 1
                 return self.getIDOrReserved()
 
             if self.src[self.forward] == '0':
                 self.forward += 1
-                if self.forward < len(self.src) and self.src[self.forward] == '.':
+                if not self.isEOF() and self.src[self.forward] == '.':
                     self.forward += 1
                     return self.getNumericAfterDot()
                     #hex digits
-                if self.forward < len(self.src) and self.src[self.forward] in 'xX':
+                if not self.isEOF() and self.src[self.forward] in 'xX':
                     self.forward += 1
                     if isHexDigit(self.src[self.forward]):
-                        while self.forward < len(self.src) and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
+                        while not self.isEOF() and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
                             self.forward += 1
                         return self.extractNumeric()
                     raise Exception('Illegal')
@@ -112,12 +121,12 @@ class Lexer:
 
             if self.src[self.forward].isnumeric() and self.src[self.forward] != '0':
                 self.forward += 1
-                while self.forward < len(self.src) and self.src[self.forward].isdigit():
+                while not self.isEOF() and self.src[self.forward].isdigit():
                     self.forward += 1
-                if self.forward < len(self.src) and self.src[self.forward] == '.':
+                if not self.isEOF() and self.src[self.forward] == '.':
                     self.forward += 1
                     return self.getNumericAfterDot()
-                if self.forward < len(self.src) and self.src[self.forward] in 'eE':
+                if not self.isEOF() and self.src[self.forward] in 'eE':
                     self.forward += 1
                     return self.getNumericExp()
                 return self.extractNumeric()
@@ -132,7 +141,7 @@ class Lexer:
             for i in [4, 3, 2, 1]:
                 if (self.forward + i <= len(self.src)) and self.src[self.forward:self.forward + i] in PUNCTUATORS:
                     self.forward += i
-                    return TOK_PUNCTUATOR, self.src[self.pointer:self.forward]
+                    return self.extract(TOK_PUNCTUATOR)
 
             #string literals
             if self.src[self.forward] in ['"', "'"]:
@@ -140,14 +149,14 @@ class Lexer:
             self.forward += 1
         except:
             pass
-        return TOK_UNKNOWN, self.src[self.pointer: self.forward]
+        return self.extract(TOK_UNKNOWN)
 
 
     def getMultiComment(self):
         state = 2
         nl = False
         self.forward += 1
-        while self.forward < len(self.src):
+        while not self.isEOF():
             if self.src[self.forward] == '\n': nl = True
             if state == 2:
                 if self.src[self.forward] == '*':
@@ -170,7 +179,7 @@ class Lexer:
 
 
     def getSingleComment(self):
-        while self.forward < len(self.src) and not isLineTerm(self.src[self.forward]):
+        while not self.isEOF() and not isLineTerm(self.src[self.forward]):
             self.forward += 1
         return TOK_SINGLE_COMMENT, self.src[self.pointer + 2:self.forward]
 
@@ -192,14 +201,14 @@ class Lexer:
         return token
 
     def extractNumeric(self):
-        if self.forward < len(self.src) and isIDStart(self.src[self.forward]):
-            return TOK_ERROR, self.src[self.pointer:self.forward]
-        return TOK_NUMERIC, self.src[self.pointer:self.forward]
+        if not self.isEOF() and isIDStart(self.src[self.forward]):
+            return self.extract(TOK_ERROR)
+        return self.extract(TOK_NUMERIC)
 
     def getNumericAfterDot(self):
-        while self.forward < len(self.src) and self.src[self.forward].isnumeric():
+        while not self.isEOF() and self.src[self.forward].isnumeric():
             self.forward += 1
-        if self.forward < len(self.src) and self.src[self.forward] in 'eE':
+        if not self.isEOF() and self.src[self.forward] in 'eE':
             self.forward += 1
             return self.getNumericExp()
         return self.extractNumeric()
@@ -209,7 +218,7 @@ class Lexer:
         if self.src[self.forward] in '+-':
             self.forward += 1
         if self.src[self.forward].isnumeric():
-            while self.forward < len(self.src) and self.src[self.forward].isnumeric():
+            while not self.isEOF() and self.src[self.forward].isnumeric():
                 self.forward += 1
             return self.extractNumeric()
         return TOK_UNKNOWN, ''
@@ -217,30 +226,30 @@ class Lexer:
     def getIDOrReserved(self):
         id = self.src[self.pointer: self.forward]
         if id in RESERVED_WORDS:
-            return TOK_RESERVED, self.src[self.pointer: self.forward]
+            return self.extract(TOK_RESERVED)
 
         if id in FUTURE_RESERVED_WORDS:
-            return TOK_FUTURE_RESERVED, self.src[self.pointer: self.forward]
+            return self.extract(TOK_FUTURE_RESERVED)
 
         if self.strictMode and id in FUTURE_STRICT_RESERVED_WORDS:
-            return TOK_FUTURE_RESERVED, self.src[self.pointer: self.forward]
+            return self.extract(TOK_FUTURE_RESERVED)
 
         if id == 'null':
-            return TOK_NULL, self.src[self.pointer: self.forward]
+            return self.extract(TOK_NULL)
 
         if id == 'true':
-            return TOK_BOOL, self.src[self.pointer: self.forward]
+            return self.extract(TOK_BOOL)
         if id == 'false':
-            return TOK_BOOL, self.src[self.pointer: self.forward]
+            return self.extract(TOK_BOOL)
 
-        return TOK_ID, self.src[self.pointer: self.forward]
+        return self.extract(TOK_ID)
 
     def getString(self):
         quote = self.src[self.forward]
         token = ''
         self.forward += 1
         try:
-            while self.forward < len(self.src) and self.src[self.forward] != quote:
+            while not self.isEOF() and self.src[self.forward] != quote:
                 if self.src[self.forward] == '\\':
                     self.forward += 1
                     if isLineTerm(self.src[self.forward]):
@@ -250,15 +259,15 @@ class Lexer:
                 else:
                     token += self.src[self.forward]
                     self.forward += 1
-            if self.forward < len(self.src) and self.src[self.forward] == quote:
+            if not self.isEOF() and self.src[self.forward] == quote:
                 self.forward += 1
                 return TOK_STRING, token
         except:
             pass
-        return TOK_ERROR, self.src[self.pointer:self.forward]
+        return self.extract(TOK_ERROR)
 
     def getEscapeSeq(self):
-        if self.forward < len(self.src):
+        if not self.isEOF():
             #single escape character
             if self.src[self.forward] in SINGLE_CHARACTER_ESC_SEQ:
                 self.forward += 1
@@ -291,12 +300,12 @@ class Lexer:
         elif self.src[self.forward] == '\\':
             self.forward += 1
             if isLineTerm(self.src[self.forward]):
-                return TOK_ERROR, self.src[self.pointer:self.forward]
+                return self.extract(TOK_ERROR)
             self.forward += 1
         elif self.src[self.forward] == '[':
             self.getRegExpClass()
         else:
-            return TOK_ERROR, self.src[self.pointer:self.forward]
+            return self.extract(TOK_ERROR)
             #RegularExpressionChars
 
         while self.src[self.forward] != '/':
@@ -305,19 +314,19 @@ class Lexer:
             elif self.src[self.forward] == '\\':
                 self.forward += 1
                 if isLineTerm(self.src[self.forward]):
-                    return TOK_ERROR, self.src[self.pointer:self.forward]
+                    return self.extract(TOK_ERROR)
                 self.forward += 1
             elif self.src[self.forward] == '[':
                 self.getRegExpClass()
             else:
-                return TOK_ERROR, self.src[self.pointer:self.forward]
+                return self.extract(TOK_ERROR)
 
         self.forward += 1
 
         #RegularExpressionFlags
         while self.forward < len(self.src) and isIDPart(self.src[self.forward]):
             self.forward += 1
-        return TOK_REGEXP, self.src[self.pointer:self.forward]
+        return self.extract(TOK_REGEXP)
 
 
     def getRegExpClass(self):
