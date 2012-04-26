@@ -184,11 +184,14 @@ class Lexer:
         return TOK_SINGLE_COMMENT, self.src[self.pointer + 2:self.forward]
 
 
-    def getToken(self, REMode = False):
+    #NLMode - is the NL must be returned,
+    #REMode - RegularExpression mode
+    def getToken(self, REMode = False, NLMode = False):
         token = self.getNext(REMode)
-        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
+        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS\
+              or (token[0] == TOK_NL and not NLMode) or (token[0] == TOK_MULTINL_COMMENT and not NLMode):
             token = self.getNext(REMode)
-        if token[0] == TOK_MULTINL_COMMENT:
+        if token[0] == TOK_MULTINL_COMMENT and NLMode:
             return TOK_NL, ''
         return token
 

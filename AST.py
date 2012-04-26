@@ -7,12 +7,12 @@ class Node:
 
 
 class ProgramNode(Node):
-    sourceElements = []
+    def __init__(self):
+        self.sourceElements = []
 
 
 class FunctionDeclaration(Node):
-    name = ''
-    arguments=[]
-    def __init__(self,name):
+    def __init__(self,name,arguments):
         self.name = name
+        self.arguments = arguments
 

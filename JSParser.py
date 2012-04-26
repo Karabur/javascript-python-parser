@@ -33,25 +33,7 @@ class Parser:
     def error(self, msg):
         raise Exception(msg)
 
-    def parseProgram(self):
-        node = AST.ProgramNode()
-        self.ASTRoot = node
 
-        while not self.match(JSLexer.TOK_EOF):
-            if self.match(JSLexer.TOK_RESERVED, 'function'):
-                node.sourceElements.append(self.parseFunctionDeclaration())
-            else:
-                self.error('error paring program')
-
-    def parseFunctionDeclaration(self):
-        self.expect(JSLexer.TOK_RESERVED,'function')
-        name = self.expect(JSLexer.TOK_ID)[1]
-        self.expect(JSLexer.TOK_PUNCTUATOR,'(')
-        self.expect(JSLexer.TOK_PUNCTUATOR,')')
-        self.expect(JSLexer.TOK_PUNCTUATOR,'{')
-        self.expect(JSLexer.TOK_PUNCTUATOR,'}')
-
-        return AST.FunctionDeclaration(name)
 
     def expect(self, token, value=None):
         if not self.match(token,value):
@@ -67,4 +49,35 @@ class Parser:
             return tok
         return self.lexer.getNext()
 
+
+    def parseProgram(self):
+        node = AST.ProgramNode()
+        self.ASTRoot = node
+
+        try:
+            while not self.match(JSLexer.TOK_EOF):
+                node.sourceElements.append(self.parseSourceElement())
+        except:
+            pass
+
+
+    def parseFunctionDeclaration(self):
+        self.expect(JSLexer.TOK_RESERVED,'function')
+        name = self.expect(JSLexer.TOK_ID)[1]
+        arguments = []
+        self.expect(JSLexer.TOK_PUNCTUATOR,'(')
+        if self.match(JSLexer.TOK_ID):
+            arguments.append(self.nextToken()[1])
+            while self.match(JSLexer.TOK_PUNCTUATOR,','):
+                self.nextToken()
+                arguments.append(self.expect(JSLexer.TOK_ID)[1])
+        self.expect(JSLexer.TOK_PUNCTUATOR,')')
+        self.expect(JSLexer.TOK_PUNCTUATOR,'{')
+        self.expect(JSLexer.TOK_PUNCTUATOR,'}')
+
+        return AST.FunctionDeclaration(name,arguments)
+
+    def parseSourceElement(self):
+        if self.match(JSLexer.TOK_RESERVED,'function'):
+            return self.parseFunctionDeclaration()
 
