@@ -1,4 +1,3 @@
-
 __author__ = 'Robur'
 
 
@@ -7,6 +6,13 @@ class Node:
         self.parent = None
 
 
-
 class ProgramNode(Node):
-    pass
+    sourceElements = []
+
+
+class FunctionDeclaration(Node):
+    name = ''
+    arguments=[]
+    def __init__(self,name):
+        self.name = name
+

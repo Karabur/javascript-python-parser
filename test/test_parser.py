@@ -14,4 +14,13 @@ class ParserTestCase(unittest.TestCase):
         self.assertIsNotNone(parser.ASTRoot, 'creation of tree root')
         self.assertEqual(type(parser.ASTRoot), AST.ProgramNode)
 
+    def testEmptyFunctionDefinition(self):
+        parser = JSParser.Parser()
+        parser.src = 'function name1() {}'
+        parser.buildAST()
+
+        self.assertEqual(len(parser.ASTRoot.sourceElements),1)
+        self.assertEqual(type(parser.ASTRoot.sourceElements[0]), AST.FunctionDeclaration)
+        self.assertEqual(parser.ASTRoot.sourceElements[0].name, 'name1')
+
 

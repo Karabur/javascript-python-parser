@@ -184,18 +184,10 @@ class Lexer:
         return TOK_SINGLE_COMMENT, self.src[self.pointer + 2:self.forward]
 
 
-    def getToken(self):
-        token = self.getNext()
+    def getToken(self, REMode = False):
+        token = self.getNext(REMode)
         while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
-            token = self.getNext()
-        if token[0] == TOK_MULTINL_COMMENT:
-            return TOK_NL, ''
-        return token
-
-    def getRegExpToken(self):
-        token = self.getNext(True)
-        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS:
-            token = self.getNext(True)
+            token = self.getNext(REMode)
         if token[0] == TOK_MULTINL_COMMENT:
             return TOK_NL, ''
         return token
@@ -342,3 +334,8 @@ class Lexer:
             else:
                 raise Exception('Error parsing RegExp')
         self.forward += 1
+
+
+def getTokenTypeName(token):
+    if token == TOK_ID: return 'Identifier'
+    return ''
