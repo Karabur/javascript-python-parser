@@ -3,6 +3,9 @@ import JSLexer
 
 __author__ = 'Robur'
 
+FOLLOW_SourceElements = [ (JSLexer.TOK_PUNCTUATOR , '}'),
+                          (JSLexer.TOK_EOF,None)
+                        ]
 
 class Parser:
     def __init__(self):
@@ -54,9 +57,9 @@ class Parser:
         node = AST.ProgramNode()
         self.ASTRoot = node
 
-        while not self.match(JSLexer.TOK_EOF):
-            node.sourceElements.append(self.parseSourceElement())
-
+#        while not self.match(JSLexer.TOK_EOF):
+#            node.sourceElements.append(self.parseSourceElement())
+        node.sourceElements = self.parseSourceElements()
 
     def parseFunctionDeclaration(self):
         self.expect(JSLexer.TOK_RESERVED,'function')
@@ -70,11 +73,29 @@ class Parser:
                 arguments.append(self.expect(JSLexer.TOK_ID)[1])
         self.expect(JSLexer.TOK_PUNCTUATOR,')')
         self.expect(JSLexer.TOK_PUNCTUATOR,'{')
+        sourceElements = self.parseSourceElements()
         self.expect(JSLexer.TOK_PUNCTUATOR,'}')
 
-        return AST.FunctionDeclaration(name,arguments)
+        return AST.FunctionDeclaration(name,arguments,sourceElements)
 
     def parseSourceElement(self):
         if self.match(JSLexer.TOK_RESERVED,'function'):
             return self.parseFunctionDeclaration()
+
+    def parseSourceElements(self):
+        sourceElements = []
+        while not self.matchList(FOLLOW_SourceElements):
+            sourceElements.append(self.parseSourceElement())
+        return sourceElements
+
+    def matchList(self, list):
+        token = self.lookup()
+        for listToken in list:
+            if listToken[1] == None:
+                if token[0] == listToken[0]: return True
+            elif token[1] == listToken[1] and token[0] == listToken[0]:
+                return True
+        return False
+
+
 

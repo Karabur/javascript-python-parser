@@ -12,7 +12,8 @@ class ProgramNode(Node):
 
 
 class FunctionDeclaration(Node):
-    def __init__(self,name,arguments):
+    def __init__(self,name,arguments,sourceElements):
         self.name = name
         self.arguments = arguments
+        self.sourceElements = sourceElements
 

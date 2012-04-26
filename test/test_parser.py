@@ -33,3 +33,14 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.arguments[0],'aa')
         self.assertEqual(node.arguments[1],'a23')
 
+    def testFunctionDefinitionAsBodyOfFunctionDefinition(self):
+        parser = JSParser.Parser()
+        parser.src = 'function outer(asd) {\
+        function tt() {}\
+        }'
+
+        parser.buildAST()
+
+        node = parser.ASTRoot.sourceElements[0]
+
+        self.assertEqual(len(node.sourceElements),1)
