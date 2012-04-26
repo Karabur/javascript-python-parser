@@ -54,11 +54,8 @@ class Parser:
         node = AST.ProgramNode()
         self.ASTRoot = node
 
-        try:
-            while not self.match(JSLexer.TOK_EOF):
-                node.sourceElements.append(self.parseSourceElement())
-        except:
-            pass
+        while not self.match(JSLexer.TOK_EOF):
+            node.sourceElements.append(self.parseSourceElement())
 
 
     def parseFunctionDeclaration(self):
