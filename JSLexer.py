@@ -1,35 +1,42 @@
 #list of reserved words
-RESERVED_WORDS = ['break', 'do', 'instanceof', 'typeof', 'case', 'else', 'new', 'var', 'catch', 'finally', 'return', 'void', 'continue', 'for',
-                  'switch', 'while', 'debugger', 'function', 'this', 'with', 'default', 'if', 'throw', 'delete', 'in', 'try']
+RESERVED_WORDS = ['break', 'do', 'instanceof', 'typeof', 'case', 'else', 'new', 'var', 'catch', 'finally', 'return',
+                  'void', 'continue', 'for',
+                  'switch', 'while', 'debugger', 'function', 'this', 'with', 'default', 'if', 'throw', 'delete', 'in',
+                  'try']
 FUTURE_RESERVED_WORDS = ['class', 'enum', 'extends', 'super', 'const', 'export', 'import']
-FUTURE_STRICT_RESERVED_WORDS = ['implements', 'let', 'private', 'public', 'yield', 'interface', 'package', 'protected', 'static']
-PUNCTUATORS = ['{', '}', '(', ')', '[', ']', '.', ';', ',', '<', '>', '<=', '>=', '==', '!=', '===', '!==', '+', '-', '*', '%', '++', '--', '<<', '>>'
-    , '>>>', '&', '|', '^', '!', '~', '&&', '||', '?', ':', '=', '+=', '-=', '*=', '%=', '<<=', '>>=', '>>>=', '&=', '|=', '^=']
-SINGLE_CHARACTER_ESC_SEQ = {'b': '\u0008', 't': '\u0009', 'n': '\u000A', 'v': '\u000B', 'f': '\u000C', 'r': '\u000D', '"': '\u0022', '\'': '\u0027',
+FUTURE_STRICT_RESERVED_WORDS = ['implements', 'let', 'private', 'public', 'yield', 'interface', 'package', 'protected',
+                                'static']
+PUNCTUATORS = ['{', '}', '(', ')', '[', ']', '.', ';', ',', '<', '>', '<=', '>=', '==', '!=', '===', '!==', '+', '-',
+               '*', '%', '++', '--', '<<', '>>'
+    , '>>>', '&', '|', '^', '!', '~', '&&', '||', '?', ':', '=', '+=', '-=', '*=', '%=', '<<=', '>>=', '>>>=', '&=',
+               '|=', '^=']
+SINGLE_CHARACTER_ESC_SEQ = {'b': '\u0008', 't': '\u0009', 'n': '\u000A', 'v': '\u000B', 'f': '\u000C', 'r': '\u000D',
+                            '"': '\u0022', '\'': '\u0027',
                             '\\': '\u005c'}
 
 
 #tokens
 
-TOK_NL = 1
-TOK_SINGLE_COMMENT = 2
-TOK_MULTI_COMMENT = 3
-TOK_MULTINL_COMMENT = 4
-TOK_ID = 5
-TOK_NUMERIC = 6
-TOK_WS = 7
-TOK_RESERVED = 8
-TOK_FUTURE_RESERVED = 9
-TOK_PUNCTUATOR = 10
-TOK_NULL = 11
-TOK_BOOL = 12
-TOK_STRING = 13
-TOK_REGEXP = 14
-TOK_DIV_PUNCTUATOR = 15
+class TOK :
+    NL= 1,
+    SINGLE_COMMENT= 2,
+    MULTI_COMMENT= 3,
+    MULTINL_COMMENT= 4,
+    ID= 5,
+    NUMERIC= 6,
+    WS= 7,
+    RESERVED= 8,
+    FUTURE_RESERVED= 9,
+    PUNCTUATOR= 10,
+    NULL= 11,
+    BOOL= 12,
+    STRING= 13,
+    REGEXP= 14,
+    DIV_PUNCTUATOR= 15,
+    UNKNOWN= 999,
+    EOF= 1000,
+    ERROR= 1001
 
-TOK_UNKNOWN = 999
-TOK_EOF = 1000
-TOK_ERROR = 1001
 
 def isHexDigit(chr):
     return chr.isdigit() or chr.lower() in 'abcdef'
@@ -48,7 +55,9 @@ def isIDPart(c):
 
 
 def isWS(c):
-    return c in ['\u0020','\u0009','\n','\r','\u000c','\u000b','\u00a0','\u1680','\u2000','\u2001','\u2002','\u2003','\u2004','\u2005','\u2006','\u2007','\u2008','\u2009','\u200A','\u200B','\u202F','\u3000']
+    return c in ['\u0020', '\u0009', '\n', '\r', '\u000c', '\u000b', '\u00a0', '\u1680', '\u2000', '\u2001', '\u2002',
+                 '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u200B', '\u202F',
+                 '\u3000']
 
 
 class Lexer:
@@ -78,11 +87,11 @@ class Lexer:
     def getNext(self, REMode=False):
         try:
             if self.isEOF():
-                return TOK_EOF, ''
+                return TOK.EOF, ''
             self.pointer = self.forward
             if isWS(self.lookup()):
                 self.forward += 1
-                return TOK_WS, ''
+                return TOK.WS, ''
 
             if self.lookup() == '/':
                 self.forward += 1
@@ -96,7 +105,7 @@ class Lexer:
                 else:
                     if not self.isEOF() and self.src[self.forward] == '=':
                         self.forward += 1
-                    return self.extract(TOK_DIV_PUNCTUATOR)
+                    return self.extract(TOK.DIV_PUNCTUATOR)
 
             if isIDStart(self.src[self.forward]):
                 self.forward += 1
@@ -113,7 +122,8 @@ class Lexer:
                 if not self.isEOF() and self.src[self.forward] in 'xX':
                     self.forward += 1
                     if isHexDigit(self.src[self.forward]):
-                        while not self.isEOF() and (self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
+                        while not self.isEOF() and (
+                        self.src[self.forward].isdigit() or self.src[self.forward].lower() in 'abcdef'):
                             self.forward += 1
                         return self.extractNumeric()
                     raise Exception('Illegal')
@@ -135,13 +145,13 @@ class Lexer:
                 self.forward += 1
                 if self.src[self.forward].isnumeric():
                     return self.getNumericAfterDot()
-                return TOK_PUNCTUATOR, '.'
+                return TOK.PUNCTUATOR, '.'
 
             #check punctuators - must be after all rules which starts from one of punctuator
             for i in [4, 3, 2, 1]:
                 if (self.forward + i <= len(self.src)) and self.src[self.forward:self.forward + i] in PUNCTUATORS:
                     self.forward += i
-                    return self.extract(TOK_PUNCTUATOR)
+                    return self.extract(TOK.PUNCTUATOR)
 
             #string literals
             if self.src[self.forward] in ['"', "'"]:
@@ -149,7 +159,7 @@ class Lexer:
             self.forward += 1
         except:
             pass
-        return self.extract(TOK_UNKNOWN)
+        return self.extract(TOK.UNKNOWN)
 
 
     def getMultiComment(self):
@@ -172,7 +182,7 @@ class Lexer:
                 elif self.src[self.forward] == '/':
                 #                    state = 4
                     self.forward += 1
-                    return TOK_MULTINL_COMMENT if nl else TOK_MULTI_COMMENT, self.src[self.pointer + 2:self.forward - 2]
+                    return TOK.MULTINL_COMMENT if nl else TOK.MULTI_COMMENT, self.src[self.pointer + 2:self.forward - 2]
                 else:
                     state = 2
                     self.forward += 1
@@ -181,24 +191,24 @@ class Lexer:
     def getSingleComment(self):
         while not self.isEOF() and not isLineTerm(self.src[self.forward]):
             self.forward += 1
-        return TOK_SINGLE_COMMENT, self.src[self.pointer + 2:self.forward]
+        return TOK.SINGLE_COMMENT, self.src[self.pointer + 2:self.forward]
 
 
     #NLMode - is the NL must be returned,
     #REMode - RegularExpression mode
-    def getToken(self, REMode = False, NLMode = False):
+    def getToken(self, REMode=False, NLMode=False):
         token = self.getNext(REMode)
-        while token[0] == TOK_SINGLE_COMMENT or token[0] == TOK_MULTI_COMMENT or token[0] == TOK_WS\
-              or (token[0] == TOK_NL and not NLMode) or (token[0] == TOK_MULTINL_COMMENT and not NLMode):
+        while token[0] == TOK.SINGLE_COMMENT or token[0] == TOK.MULTI_COMMENT or token[0] == TOK.WS\
+              or (token[0] == TOK.NL and not NLMode) or (token[0] == TOK.MULTINL_COMMENT and not NLMode):
             token = self.getNext(REMode)
-        if token[0] == TOK_MULTINL_COMMENT and NLMode:
-            return TOK_NL, ''
+        if token[0] == TOK.MULTINL_COMMENT and NLMode:
+            return TOK.NL, ''
         return token
 
     def extractNumeric(self):
         if not self.isEOF() and isIDStart(self.src[self.forward]):
-            return self.extract(TOK_ERROR)
-        return self.extract(TOK_NUMERIC)
+            return self.extract(TOK.ERROR)
+        return self.extract(TOK.NUMERIC)
 
     def getNumericAfterDot(self):
         while not self.isEOF() and self.src[self.forward].isnumeric():
@@ -216,28 +226,28 @@ class Lexer:
             while not self.isEOF() and self.src[self.forward].isnumeric():
                 self.forward += 1
             return self.extractNumeric()
-        return TOK_UNKNOWN, ''
+        return TOK.UNKNOWN, ''
 
     def getIDOrReserved(self):
         id = self.src[self.pointer: self.forward]
         if id in RESERVED_WORDS:
-            return self.extract(TOK_RESERVED)
+            return self.extract(TOK.RESERVED)
 
         if id in FUTURE_RESERVED_WORDS:
-            return self.extract(TOK_FUTURE_RESERVED)
+            return self.extract(TOK.FUTURE_RESERVED)
 
         if self.strictMode and id in FUTURE_STRICT_RESERVED_WORDS:
-            return self.extract(TOK_FUTURE_RESERVED)
+            return self.extract(TOK.FUTURE_RESERVED)
 
         if id == 'null':
-            return self.extract(TOK_NULL)
+            return self.extract(TOK.NULL)
 
         if id == 'true':
-            return self.extract(TOK_BOOL)
+            return self.extract(TOK.BOOL)
         if id == 'false':
-            return self.extract(TOK_BOOL)
+            return self.extract(TOK.BOOL)
 
-        return self.extract(TOK_ID)
+        return self.extract(TOK.ID)
 
     def getString(self):
         quote = self.src[self.forward]
@@ -256,10 +266,10 @@ class Lexer:
                     self.forward += 1
             if not self.isEOF() and self.src[self.forward] == quote:
                 self.forward += 1
-                return TOK_STRING, token
+                return TOK.STRING, token
         except:
             pass
-        return self.extract(TOK_ERROR)
+        return self.extract(TOK.ERROR)
 
     def getEscapeSeq(self):
         if not self.isEOF():
@@ -267,7 +277,8 @@ class Lexer:
             if self.src[self.forward] in SINGLE_CHARACTER_ESC_SEQ:
                 self.forward += 1
                 return SINGLE_CHARACTER_ESC_SEQ[self.src[self.forward - 1]]
-            if not isLineTerm(self.src[self.forward]) and not self.src[self.forward].isnumeric() and not self.src[self.forward] in 'xu':
+            if not isLineTerm(self.src[self.forward]) and not self.src[self.forward].isnumeric() and not self.src[
+                                                                                                         self.forward] in 'xu':
                 self.forward += 1
                 return self.src[self.forward - 1]
             if self.src[self.forward] == 'u':
@@ -282,7 +293,8 @@ class Lexer:
                     code = 16 * int(self.src[self.forward + 1]) + int(self.src[self.forward + 2])
                     self.forward += 3
                     return chr(code)
-            if self.src[self.forward] == '0' and self.forward < len(self.src) - 1 and not self.src[self.forward + 1].isdigit():
+            if self.src[self.forward] == '0' and self.forward < len(self.src) - 1 and not self.src[
+                                                                                          self.forward + 1].isdigit():
                 self.forward += 1
                 return '\0'
 
@@ -295,12 +307,12 @@ class Lexer:
         elif self.src[self.forward] == '\\':
             self.forward += 1
             if isLineTerm(self.src[self.forward]):
-                return self.extract(TOK_ERROR)
+                return self.extract(TOK.ERROR)
             self.forward += 1
         elif self.src[self.forward] == '[':
             self.getRegExpClass()
         else:
-            return self.extract(TOK_ERROR)
+            return self.extract(TOK.ERROR)
             #RegularExpressionChars
 
         while self.src[self.forward] != '/':
@@ -309,19 +321,19 @@ class Lexer:
             elif self.src[self.forward] == '\\':
                 self.forward += 1
                 if isLineTerm(self.src[self.forward]):
-                    return self.extract(TOK_ERROR)
+                    return self.extract(TOK.ERROR)
                 self.forward += 1
             elif self.src[self.forward] == '[':
                 self.getRegExpClass()
             else:
-                return self.extract(TOK_ERROR)
+                return self.extract(TOK.ERROR)
 
         self.forward += 1
 
         #RegularExpressionFlags
         while self.forward < len(self.src) and isIDPart(self.src[self.forward]):
             self.forward += 1
-        return self.extract(TOK_REGEXP)
+        return self.extract(TOK.REGEXP)
 
 
     def getRegExpClass(self):
@@ -340,5 +352,5 @@ class Lexer:
 
 
 def getTokenTypeName(token):
-    if token == TOK_ID: return 'Identifier'
+    if token == TOK.ID: return 'Identifier'
     return ''

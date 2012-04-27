@@ -1,10 +1,11 @@
 import AST
-import JSLexer
+from JSLexer import TOK, Lexer
+
 
 __author__ = 'Robur'
 
-FOLLOW_SourceElements = [ (JSLexer.TOK_PUNCTUATOR , '}'),
-                          (JSLexer.TOK_EOF,None)
+FOLLOW_SourceElements = [ (TOK.PUNCTUATOR , '}'),
+                          (TOK.EOF,None)
                         ]
 
 class Parser:
@@ -13,7 +14,7 @@ class Parser:
         self.src = ''
         self.lookupToken = None
         self.REMode = False
-        self.lexer = JSLexer.Lexer()
+        self.lexer = Lexer()
         self.currentNode = None
         self.ASTRoot = None
 
@@ -42,7 +43,7 @@ class Parser:
         if not self.match(token,value):
             if value == None: value = ''
             else: value = ' ' + value
-            self.error('Expected:'+ JSLexer.getTokenTypeName(token) + value + ' ,got \''+ self.lookup()[1]+'\'')
+            self.error('Expected:'+ getTokenTypeName(token) + value + ' ,got \''+ self.lookup()[1]+'\'')
         return self.nextToken()
 
     def nextToken(self):
@@ -57,29 +58,29 @@ class Parser:
         node = AST.ProgramNode()
         self.ASTRoot = node
 
-#        while not self.match(JSLexer.TOK_EOF):
+#        while not self.match(TOK.EOF):
 #            node.sourceElements.append(self.parseSourceElement())
         node.sourceElements = self.parseSourceElements()
 
     def parseFunctionDeclaration(self):
-        self.expect(JSLexer.TOK_RESERVED,'function')
-        name = self.expect(JSLexer.TOK_ID)[1]
+        self.expect(TOK.RESERVED,'function')
+        name = self.expect(TOK.ID)[1]
         arguments = []
-        self.expect(JSLexer.TOK_PUNCTUATOR,'(')
-        if self.match(JSLexer.TOK_ID):
+        self.expect(TOK.PUNCTUATOR,'(')
+        if self.match(TOK.ID):
             arguments.append(self.nextToken()[1])
-            while self.match(JSLexer.TOK_PUNCTUATOR,','):
+            while self.match(TOK.PUNCTUATOR,','):
                 self.nextToken()
-                arguments.append(self.expect(JSLexer.TOK_ID)[1])
-        self.expect(JSLexer.TOK_PUNCTUATOR,')')
-        self.expect(JSLexer.TOK_PUNCTUATOR,'{')
+                arguments.append(self.expect(TOK.ID)[1])
+        self.expect(TOK.PUNCTUATOR,')')
+        self.expect(TOK.PUNCTUATOR,'{')
         sourceElements = self.parseSourceElements()
-        self.expect(JSLexer.TOK_PUNCTUATOR,'}')
+        self.expect(TOK.PUNCTUATOR,'}')
 
         return AST.FunctionDeclaration(name,arguments,sourceElements)
 
     def parseSourceElement(self):
-        if self.match(JSLexer.TOK_RESERVED,'function'):
+        if self.match(TOK.RESERVED,'function'):
             return self.parseFunctionDeclaration()
 
     def parseSourceElements(self):
