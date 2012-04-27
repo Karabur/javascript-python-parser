@@ -18,23 +18,23 @@ SINGLE_CHARACTER_ESC_SEQ = {'b': '\u0008', 't': '\u0009', 'n': '\u000A', 'v': '\
 #tokens
 
 class TOK :
-    NL= 1,
-    SINGLE_COMMENT= 2,
-    MULTI_COMMENT= 3,
-    MULTINL_COMMENT= 4,
-    ID= 5,
-    NUMERIC= 6,
-    WS= 7,
-    RESERVED= 8,
-    FUTURE_RESERVED= 9,
-    PUNCTUATOR= 10,
-    NULL= 11,
-    BOOL= 12,
-    STRING= 13,
-    REGEXP= 14,
-    DIV_PUNCTUATOR= 15,
-    UNKNOWN= 999,
-    EOF= 1000,
+    NL= 1
+    SINGLE_COMMENT= 2
+    MULTI_COMMENT= 3
+    MULTINL_COMMENT= 4
+    ID= 5
+    NUMERIC= 6
+    WS= 7
+    RESERVED= 8
+    FUTURE_RESERVED= 9
+    PUNCTUATOR= 10
+    NULL= 11
+    BOOL= 12
+    STRING= 13
+    REGEXP= 14
+    DIV_PUNCTUATOR= 15
+    UNKNOWN= 999
+    EOF= 1000
     ERROR= 1001
 
 
@@ -353,4 +353,5 @@ class Lexer:
 
 def getTokenTypeName(token):
     if token == TOK.ID: return 'Identifier'
-    return ''
+    if token == TOK.EOF: return 'EOF'
+    return 'token:'+str(token)
