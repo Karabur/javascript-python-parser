@@ -12,11 +12,7 @@ class Parser:
     def __init__(self):
         self.state = 0
         self.src = ''
-        self.lookupToken = None
-        self.REMode = False
         self.lexer = Lexer()
-        self.currentNode = None
-        self.ASTRoot = None
 
     def lookup(self):
         if not self.lookupToken:
@@ -24,8 +20,16 @@ class Parser:
         return self.lookupToken
 
 
-    def buildAST(self):
+    def reset(self):
         self.lexer.setSrc(self.src)
+        self.lookupToken = None
+        self.REMode = False
+        self.currentNode = None
+        self.ASTRoot = None
+
+
+    def buildAST(self):
+        self.reset()
         self.parseProgram()
 
     def match(self, token, value=None):
@@ -82,6 +86,8 @@ class Parser:
     def parseSourceElement(self):
         if self.match(TOK.RESERVED,'function'):
             return self.parseFunctionDeclaration()
+        elif self.match(TOK.PUNCTUATOR, '{'):
+            return self.parseStatement()
 
     def parseSourceElements(self):
         sourceElements = []
@@ -97,6 +103,18 @@ class Parser:
             elif token[1] == listToken[1] and token[0] == listToken[0]:
                 return True
         return False
+
+    def parseBlock(self):
+        statements = []
+        self.expect(TOK.PUNCTUATOR, '{')
+        while not self.match(TOK.PUNCTUATOR, '}'):
+            statements.append(self.parseStatement())
+        self.expect(TOK.PUNCTUATOR, '}')
+        return AST.Block(statements)
+
+    def parseStatement(self):
+        if self.match(TOK.PUNCTUATOR, '{'):
+            return self.parseBlock()
 
 
 

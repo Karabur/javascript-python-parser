@@ -17,3 +17,6 @@ class FunctionDeclaration(Node):
         self.arguments = arguments
         self.sourceElements = sourceElements
 
+class Block(Node):
+    def __init__(self,statements):
+        self.statements = statements

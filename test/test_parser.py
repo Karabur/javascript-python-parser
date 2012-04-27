@@ -1,5 +1,6 @@
-import unittest, JSParser
+import unittest
 import AST
+from JSParser import Parser
 
 __author__ = 'Robur'
 
@@ -7,15 +8,15 @@ __author__ = 'Robur'
 
 class ParserTestCase(unittest.TestCase):
     def testEmptyProgram(self):
-        parser = JSParser.Parser()
+        parser = Parser()
         parser.src = ''
         parser.buildAST()
 
         self.assertIsNotNone(parser.ASTRoot, 'creation of tree root')
         self.assertEqual(type(parser.ASTRoot), AST.ProgramNode)
 
-    def testEmptyFunctionDefinition(self):
-        parser = JSParser.Parser()
+    def testEmptyFunctionDeclaration(self):
+        parser = Parser()
         parser.src = 'function name1() {}'
         parser.buildAST()
 
@@ -23,8 +24,8 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(parser.ASTRoot.sourceElements[0]), AST.FunctionDeclaration)
         self.assertEqual(parser.ASTRoot.sourceElements[0].name, 'name1')
 
-    def testArgumentsFunctionDefinition(self):
-        parser = JSParser.Parser()
+    def testArgumentsFunctionDeclaration(self):
+        parser = Parser()
         parser.src = 'function asd(aa,a23) {}'
         parser.buildAST()
 
@@ -33,8 +34,8 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.arguments[0],'aa')
         self.assertEqual(node.arguments[1],'a23')
 
-    def testFunctionDefinitionAsBodyOfFunctionDefinition(self):
-        parser = JSParser.Parser()
+    def testFunctionDeclarationAsBodyOfFunctionDeclaration(self):
+        parser = Parser()
         parser.src = 'function outer(asd) {\
         function tt() {}\
         }'
@@ -44,3 +45,31 @@ class ParserTestCase(unittest.TestCase):
         node = parser.ASTRoot.sourceElements[0]
 
         self.assertEqual(len(node.sourceElements),1)
+
+    def testParseProgramAsBlockStatements(self):
+        parser = Parser()
+        parser.src = '{}'
+
+        parser.buildAST()
+
+        self.assertEqual(len(parser.ASTRoot.sourceElements),1)
+        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(type(node), AST.Block)
+        parser.src = '{}{}'
+
+        parser.buildAST()
+
+        self.assertEqual(len(parser.ASTRoot.sourceElements),2)
+        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(type(node), AST.Block)
+        node = parser.ASTRoot.sourceElements[1]
+        self.assertEqual(type(node), AST.Block)
+
+#    def testParseBlockStatementInFunctionBody(self):
+#        parser = Parser()
+#        parser.src = 'function a(){ {} }'
+#
+#        parser.buildAST()
+#        node = parser.ASTRoot.sourceElements[0]
+
+
