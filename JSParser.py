@@ -139,6 +139,32 @@ class Parser:
         else:
             self.error('Unexpected: ' + JSLexer.getTokenTypeName(token[0]))
 
+    def parseVariableStatement(self):
+        declarations = []
+        self.expect(TOK.RESERVED, 'var')
+        declarations.append(self.parseVariableDeclaration())
+        while self.match(TOK.PUNCTUATOR, ','):
+            declarations.append(self.parseVariableDeclaration())
+        self.expect(TOK.PUNCTUATOR, ';')
+        return AST.VariableStatement(declarations)
+
+    def parseVariableDeclaration(self):
+        id = self.expect(TOK.ID)[1]
+        initializer = None
+        if self.match(TOK.PUNCTUATOR, '='):
+            self.nextToken()
+            initializer = self.parseAssignmentExpression()
+        return AST.VariableDeclaration(id, initializer)
+
+    def parseAssignmentExpression(self):
+        pass
+
+
+
+
+        
+
+
 
 
 

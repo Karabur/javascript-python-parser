@@ -65,11 +65,22 @@ class ParserTestCase(unittest.TestCase):
         node = parser.ASTRoot.sourceElements[1]
         self.assertEqual(type(node), AST.Block)
 
-#    def testParseBlockStatementInFunctionBody(self):
-#        parser = Parser()
-#        parser.src = 'function a(){ {} }'
-#
-#        parser.buildAST()
-#        node = parser.ASTRoot.sourceElements[0]
+    def testParseBlockStatementInFunctionBody(self):
+        parser = Parser()
+        parser.src = 'function a(){ {} }'
+
+        parser.buildAST()
+        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(type(node.sourceElements[0]), AST.Block)
+
+    def testParseVariableStatement(self):
+        parser = Parser()
+        parser.src = 'var x;'
+
+        parser.buildAST()
+        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(type(node), AST.VariableStatement)
+        self.assertEqual(node.declarations[0].id,'x')
+
 
 
