@@ -198,6 +198,8 @@ class Parser:
         if self.match(TOK.NUMERIC):
             token = self.nextToken()
             return AST.Number(token[1])
+        if self.match(TOK.PUNCTUATOR,'['):
+            return self.parseArrayLiteral()
 
         #todo: not finished
         self.unexpected()
@@ -219,7 +221,21 @@ class Parser:
         #todo: unfinished!
         pass
 
-
+    def parseArrayLiteral(self):
+        list = []
+        self.expect(TOK.PUNCTUATOR,'[')
+        done = self.match(TOK.PUNCTUATOR,']')
+        while not done:
+            if self.match(TOK.PUNCTUATOR, ','):
+                list.append(AST.HoleLiteral())
+            else:
+                list.append(self.parseAssignmentExpression())
+            if not self.match(TOK.PUNCTUATOR,']'):
+                self.expect(TOK.PUNCTUATOR, ',')
+            else:
+                done = True
+        self.expect(TOK.PUNCTUATOR,']')
+        return AST.Array(list)
 
 
 

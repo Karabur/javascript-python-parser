@@ -127,5 +127,19 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.args[0].value, '2')
         self.assertEqual(node.args[1].name, 'a')
 
+    def test10PrimaryExpression(self):
+        parser = Parser()
+        parser.src = '[] [1,a,3]'
+        parser.reset()
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Array)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(len(node.items), 3)
+        self.assertEqual(node.items[0].value, '1')
+        self.assertEqual(node.items[1].name, 'a')
+
+
 
 

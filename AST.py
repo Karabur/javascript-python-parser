@@ -67,3 +67,14 @@ class Number(Node):
         super().__init__()
         self.value = value
 
+
+class Array(Node):
+    def __init__(self, items):
+        super().__init__()
+        self.items = items
+        for i in self.items: i.parent = self
+
+
+class HoleLiteral(Node):
+    def __init__(self):
+        super().__init__()
