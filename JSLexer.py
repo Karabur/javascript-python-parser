@@ -351,10 +351,11 @@ class Lexer:
         self.forward += 1
 
 
-def tokenToStr(token):
-    return tokenToStr(token[0],token[1])
 
-def tokenToStr(token,value):
+def tokenToStr(token,value = None):
+    if value == None and type(token) == tuple:
+        token = token[0]
+        value = token[1]
     if token == TOK.ID: return 'Identifier'
     if token == TOK.EOF: return 'EOF'
     if token == TOK.PUNCTUATOR: return value

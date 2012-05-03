@@ -12,12 +12,15 @@ class FOLLOW:
     ]
 
 
+#noinspection PyTypeChecker
 class FIRST:
     Statement = [
         (TOK.PUNCTUATOR, '{'),
-        (TOK.RESERVED, 'var')
+        (TOK.RESERVED, 'var'),
+        (TOK)
     ]
     FunctionDeclaration = [(TOK.RESERVED, 'function')]
+
 
 
 class Parser:
@@ -58,7 +61,7 @@ class Parser:
         if not self.match(token, value):
             if value == None: value = ''
             else: value = ' ' + value
-            self.error('Expected:' + JSLexer.getTokenTypeName(token) + value + ' ,got \'' + self.lookup()[1] + '\'')
+            self.error('Expected:' + JSLexer.tokenToStr(token,value) + ' ,got \'' + self.lookup()[1] + '\'')
         return self.nextToken()
 
     def nextToken(self):
@@ -70,12 +73,7 @@ class Parser:
 
 
     def parseProgram(self):
-        node = AST.ProgramNode()
-        self.ASTRoot = node
-
-        #        while not self.match(TOK.EOF):
-        #            node.sourceElements.append(self.parseSourceElement())
-        node.sourceElements = self.parseSourceElements()
+        self.ASTRoot = AST.ProgramNode(self.parseSourceElements())
 
     def parseFunctionDeclaration(self):
         self.expect(TOK.RESERVED, 'function')
@@ -97,9 +95,7 @@ class Parser:
     def parseSourceElement(self):
         if self.matchList(FIRST.FunctionDeclaration):
             return self.parseFunctionDeclaration()
-        elif self.matchList(FIRST.Statement):
-            return self.parseStatement()
-        self.unexpected()
+        return self.parseStatement()
 
     def parseSourceElements(self):
         sourceElements = []
@@ -137,7 +133,7 @@ class Parser:
         if token[1] != None:
             self.error('Unexpected: ' + token[1])
         else:
-            self.error('Unexpected: ' + JSLexer.getTokenTypeName(token[0]))
+            self.error('Unexpected: ' + JSLexer.tokenToStr(token[0]))
 
     def parseVariableStatement(self):
         declarations = []
@@ -157,12 +153,71 @@ class Parser:
         return AST.VariableDeclaration(id, initializer)
 
     def parseAssignmentExpression(self):
+        #todo: unfinished!
+        return self.parseLeftHandSideExpression()
+
+    def parseLeftHandSideExpression(self):
+        # LeftHandSideExpression ::
+        # (NewExpression | MemberExpression) ...
+        result = None
+        if self.match(TOK.RESERVED, 'new'):
+            result = self.parseNewExpression()
+        else:
+            result = self.parseMemberExpression(newLevel = 0)
+
+        while True:
+            if self.match(TOK.PUNCTUATOR, '('):
+                args = self.parseArguments()
+                result = AST.Call(result,args)
+            else:
+                return result
+
+    def parseMemberExpression(self, newLevel):
+        # MemberExpression ::
+        #(PrimaryExpression | FunctionLiteral)
+        #   ('[' Expression ']' | '.' Identifier | Arguments)*
+        result = None
+        if self.match(TOK.RESERVED, 'function'):
+            #todo: parse function expression
+            pass
+        else:
+            result = self.parsePrimaryExpression()
+
+        while True:
+            #todo:parse [] . ()
+            return result
+
+
+    def parsePrimaryExpression(self):
+        if self.match(TOK.RESERVED, 'this'):
+            self.nextToken()
+            return AST.This()
+        if self.match(TOK.ID):
+            token = self.nextToken()
+            return AST.Identifier(token[1])
+        if self.match(TOK.NUMERIC):
+            token = self.nextToken()
+            return AST.Number(token[1])
+
+        #todo: not finished
+        self.unexpected()
+
+    def parseArguments(self):
+        arguments = []
+        self.expect(TOK.PUNCTUATOR, '(')
+        done = self.match(TOK.PUNCTUATOR, ')')
+        while not done:
+            arguments.append(self.parseAssignmentExpression())
+            if self.match(TOK.PUNCTUATOR, ','):
+                self.nextToken()
+            else:
+                done = True
+        self.expect(TOK.PUNCTUATOR, ')')
+        return arguments
+
+    def parseNewExpression(self):
+        #todo: unfinished!
         pass
-
-
-
-
-        
 
 
 

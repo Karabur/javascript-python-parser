@@ -7,7 +7,7 @@ __author__ = 'Robur'
 
 
 class ParserTestCase(unittest.TestCase):
-    def testEmptyProgram(self):
+    def test01EmptyProgram(self):
         parser = Parser()
         parser.src = ''
         parser.buildAST()
@@ -15,7 +15,7 @@ class ParserTestCase(unittest.TestCase):
         self.assertIsNotNone(parser.ASTRoot, 'creation of tree root')
         self.assertEqual(type(parser.ASTRoot), AST.ProgramNode)
 
-    def testEmptyFunctionDeclaration(self):
+    def test02EmptyFunctionDeclaration(self):
         parser = Parser()
         parser.src = 'function name1() {}'
         parser.buildAST()
@@ -23,8 +23,9 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(len(parser.ASTRoot.sourceElements),1)
         self.assertEqual(type(parser.ASTRoot.sourceElements[0]), AST.FunctionDeclaration)
         self.assertEqual(parser.ASTRoot.sourceElements[0].name, 'name1')
+        self.assertEqual(parser.ASTRoot.sourceElements[0].parent, parser.ASTRoot)
 
-    def testArgumentsFunctionDeclaration(self):
+    def test03ArgumentsFunctionDeclaration(self):
         parser = Parser()
         parser.src = 'function asd(aa,a23) {}'
         parser.buildAST()
@@ -34,7 +35,7 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.arguments[0],'aa')
         self.assertEqual(node.arguments[1],'a23')
 
-    def testFunctionDeclarationAsBodyOfFunctionDeclaration(self):
+    def test04FunctionDeclarationAsBodyOfFunctionDeclaration(self):
         parser = Parser()
         parser.src = 'function outer(asd) {\
         function tt() {}\
@@ -46,7 +47,7 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(len(node.sourceElements),1)
 
-    def testParseProgramAsBlockStatements(self):
+    def test05ParseProgramAsBlockStatements(self):
         parser = Parser()
         parser.src = '{}'
 
@@ -65,7 +66,7 @@ class ParserTestCase(unittest.TestCase):
         node = parser.ASTRoot.sourceElements[1]
         self.assertEqual(type(node), AST.Block)
 
-    def testParseBlockStatementInFunctionBody(self):
+    def test06ParseBlockStatementInFunctionBody(self):
         parser = Parser()
         parser.src = 'function a(){ {} }'
 
@@ -73,14 +74,58 @@ class ParserTestCase(unittest.TestCase):
         node = parser.ASTRoot.sourceElements[0]
         self.assertEqual(type(node.sourceElements[0]), AST.Block)
 
-    def testParseVariableStatement(self):
+    def test07ParseVariableStatement(self):
         parser = Parser()
         parser.src = 'var x;'
-
         parser.buildAST()
         node = parser.ASTRoot.sourceElements[0]
         self.assertEqual(type(node), AST.VariableStatement)
         self.assertEqual(node.declarations[0].id,'x')
+
+#        parser.src = 'var x=1;'
+#        parser.buildAST()
+#        node = parser.ASTRoot.sourceElements[0]
+#        self.assertEqual(type(node), AST.VariableStatement)
+#        self.assertEqual(node.declarations[0].initializer,'x')
+
+    def test08ParseLeftHandSideExpression(self):
+        parser = Parser()
+        parser.src = 'a 1'
+        parser.reset()
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Identifier)
+        self.assertEqual(node.name, 'a')
+
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Number)
+        self.assertEqual(node.value, '1')
+
+
+    def test09ParseCallLeftHandSideExpression(self):
+        parser = Parser()
+        parser.src = 'b() c()() d(1)(2,a)'
+        parser.reset()
+
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Call)
+        self.assertEqual(type(node.callee), AST.Identifier)
+        self.assertEqual(node.callee.name, 'b')
+
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Call)
+        self.assertEqual(type(node.callee), AST.Call)
+        self.assertEqual(node.callee.callee.name, 'c')
+
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(len(node.callee.args), 1)
+        self.assertEqual(type(node.callee.args[0]), AST.Number)
+        self.assertEqual(node.callee.args[0].value, '1')
+
+        self.assertEqual(len(node.args), 2)
+        self.assertEqual(type(node.args[0]), AST.Number)
+        self.assertEqual(type(node.args[1]), AST.Identifier)
+        self.assertEqual(node.args[0].value, '2')
+        self.assertEqual(node.args[1].name, 'a')
 
 
 
