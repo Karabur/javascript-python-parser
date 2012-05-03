@@ -351,7 +351,11 @@ class Lexer:
         self.forward += 1
 
 
-def getTokenTypeName(token):
+def tokenToStr(token):
+    return tokenToStr(token[0],token[1])
+
+def tokenToStr(token,value):
     if token == TOK.ID: return 'Identifier'
     if token == TOK.EOF: return 'EOF'
-    return 'token:'+str(token)
+    if token == TOK.PUNCTUATOR: return value
+    return 'token:'+str(token) + ' \''+value+'\''
