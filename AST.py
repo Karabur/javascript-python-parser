@@ -101,7 +101,11 @@ class ObjectGetSetProperty(Node):
         super().__init__()
         self.key = key
         self.getterBody = getterBody
+        if self.getterBody:
+            for s in self.getterBody: s.parent = self
         self.setterBody = setterBody
+        if self.setterBody:
+            for s in self.setterBody: s.parent = self
         self.paramName = paramName
 
 class String(Node):
@@ -110,3 +114,15 @@ class String(Node):
         self.value = value
 
 
+class BinaryExpression(Node):
+    def __init__(self, op, left, right):
+        super().__init__()
+        self.op = op
+        self.left = left
+        self.right = right
+
+
+class Literal(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value

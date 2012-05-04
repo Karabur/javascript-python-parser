@@ -191,17 +191,29 @@ class Parser:
         if self.match(TOK.RESERVED, 'this'):
             self.nextToken()
             return AST.This()
+
+        if self.match(TOK.BOOL):
+            return AST.Literal(self.nextToken())
+
+        if self.match(TOK.NULL):
+            return AST.Literal(self.nextToken())
+
         if self.match(TOK.ID):
             token = self.nextToken()
             return AST.Identifier(token[1])
+
         if self.match(TOK.NUMERIC):
             token = self.nextToken()
             return AST.Number(token[1])
+
         if self.match(TOK.PUNCTUATOR, '['):
             return self.parseArrayLiteral()
 
         if self.match(TOK.PUNCTUATOR, '{'):
             return self.parseObjectLiteral()
+
+        if self.match(TOK.PUNCTUATOR, '('):
+            return self.parseExpression()
 
         #todo: not finished
         self.unexpected()
@@ -300,6 +312,15 @@ class Parser:
                 properties.append(AST.ObjectGetSetProperty(key,getterBody,setterBody,paramName))
         else:
             self.unexpected()
+
+    def parseExpression(self):
+        self.expect(TOK.PUNCTUATOR,'(')
+        result = self.parseAssignmentExpression()
+        while self.match(TOK.PUNCTUATOR,','):
+            self.nextToken()
+            result = AST.BinaryExpression(',', result, self.parseAssignmentExpression())
+        self.expect(TOK.PUNCTUATOR,')')
+        return result
 
 
 

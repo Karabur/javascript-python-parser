@@ -129,8 +129,21 @@ class ParserTestCase(unittest.TestCase):
 
     def test10PrimaryExpression(self):
         parser = Parser()
-        parser.src = '[] [1,a,,3]'
+        parser.src = 'this asd false true null [] [1,a,,3]'
         parser.reset()
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.This)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Identifier)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Literal)
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Literal)
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Literal)
 
         node = parser.parsePrimaryExpression()
         self.assertEqual(type(node), AST.Array)
@@ -174,6 +187,20 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node.properties[1].setterBody), list)
         self.assertEqual(node.properties[1].paramName, 'val')
 
+
+        parser.src = '({}) ([],{},asd)'
+        parser.reset()
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.ObjectLiteral)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.BinaryExpression)
+        self.assertEqual(type(node.right), AST.Identifier)
+        self.assertEqual(node.op, ',')
+        self.assertEqual(type(node.left), AST.BinaryExpression)
+        self.assertEqual(type(node.left.left), AST.Array)
+        self.assertEqual(type(node.left.right), AST.ObjectLiteral)
 
 
 
