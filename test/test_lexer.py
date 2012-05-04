@@ -1,6 +1,6 @@
 __author__ = 'Robur'
 
-import unittest, JSLexer
+import unittest
 from JSLexer import TOK, Lexer
 
 class LexerTestCase(unittest.TestCase):
@@ -167,21 +167,22 @@ class LexerTestCase(unittest.TestCase):
 
     def testRegExp(self):
         lex=Lexer()
-        lex.setSrc('/asddd/iuy')
-        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/asddd/iuy'))
+        lex.setSrc('asd/asddd/iuy')
+        lex.getToken()
+        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/asddd/iuy'))
         lex.setSrc('/asddd/')
-        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/asddd/'))
+        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/asddd/'))
         lex.setSrc('/\\dasddd/')
-        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/\\dasddd/'))
+        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/\\dasddd/'))
         lex.setSrc('/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/')
-        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/'))
+        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/'))
 
     def testDivPunctuator(self):
         lex=Lexer()
         lex.setSrc('asd/333/=')
         lex.getToken()
-        self.assertEqual(lex.getToken(), (TOK.DIV_PUNCTUATOR,'/'))
+        self.assertEqual(lex.getToken(False), (TOK.DIV_PUNCTUATOR,'/'))
         lex.getToken()
-        self.assertEqual(lex.getToken(), (TOK.DIV_PUNCTUATOR,'/='))
+        self.assertEqual(lex.getToken(False), (TOK.DIV_PUNCTUATOR,'/='))
 
 

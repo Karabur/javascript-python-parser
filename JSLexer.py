@@ -84,7 +84,7 @@ class Lexer:
     def extract(self, tokenType):
         return tokenType, self.src[self.pointer:self.forward]
 
-    def getNext(self, REMode=False):
+    def getNext(self, REMode=True):
         try:
             if self.isEOF():
                 return TOK.EOF, ''
@@ -196,7 +196,7 @@ class Lexer:
 
     #NLMode - is the NL must be returned,
     #REMode - RegularExpression mode
-    def getToken(self, REMode=False, NLMode=False):
+    def getToken(self, REMode=True, NLMode=False):
         token = self.getNext(REMode)
         while token[0] == TOK.SINGLE_COMMENT or token[0] == TOK.MULTI_COMMENT or token[0] == TOK.WS\
               or (token[0] == TOK.NL and not NLMode) or (token[0] == TOK.MULTINL_COMMENT and not NLMode):
