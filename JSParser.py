@@ -233,12 +233,14 @@ class Parser:
             return self.parseObjectLiteral()
 
         if self.match(TOK.PUNCTUATOR, '('):
-            return self.parseExpression()
+            self.expect(TOK.PUNCTUATOR, '(')
+            result = self.parseExpression()
+            self.expect(TOK.PUNCTUATOR, ')')
+            return result
 
         if self.match(TOK.REGEXP):
             return AST.Literal(self.nextToken()[1])
 
-        #todo: not finished
         self.unexpected()
 
     def parseArguments(self):
@@ -333,12 +335,10 @@ class Parser:
             self.unexpected()
 
     def parseExpression(self):
-        self.expect(TOK.PUNCTUATOR,'(')
         result = self.parseAssignmentExpression()
         while self.match(TOK.PUNCTUATOR,','):
             self.nextToken()
             result = AST.BinaryExpression(',', result, self.parseAssignmentExpression())
-        self.expect(TOK.PUNCTUATOR,')')
         return result
 
 
