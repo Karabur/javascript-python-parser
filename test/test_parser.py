@@ -103,29 +103,48 @@ class ParserTestCase(unittest.TestCase):
 
     def test09ParseCallLeftHandSideExpression(self):
         parser = Parser()
-        parser.src = 'b() c()() d(1)(2,a)'
+        parser.src = 'b() c()() d(1)(2,a) '
         parser.reset()
 
         node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Call)
-        self.assertEqual(type(node.callee), AST.Identifier)
-        self.assertEqual(node.callee.name, 'b')
+        self.assertEqual(type(node.expr), AST.Identifier)
+        self.assertEqual(node.expr.name, 'b')
 
         node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Call)
-        self.assertEqual(type(node.callee), AST.Call)
-        self.assertEqual(node.callee.callee.name, 'c')
+        self.assertEqual(type(node.expr), AST.Call)
+        self.assertEqual(node.expr.expr.name, 'c')
 
         node = parser.parseLeftHandSideExpression()
-        self.assertEqual(len(node.callee.args), 1)
-        self.assertEqual(type(node.callee.args[0]), AST.Number)
-        self.assertEqual(node.callee.args[0].value, '1')
+        self.assertEqual(len(node.expr.args), 1)
+        self.assertEqual(type(node.expr.args[0]), AST.Number)
+        self.assertEqual(node.expr.args[0].value, '1')
 
         self.assertEqual(len(node.args), 2)
         self.assertEqual(type(node.args[0]), AST.Number)
         self.assertEqual(type(node.args[1]), AST.Identifier)
         self.assertEqual(node.args[0].value, '2')
         self.assertEqual(node.args[1].name, 'a')
+
+        parser.src = 'new a()    new new b(a)(23,3)(12,c,b)'
+        parser.reset()
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.New)
+        self.assertEqual(type(node.expr), AST.Identifier)
+        self.assertEqual(node.expr.name, 'a')
+        self.assertEqual(node.args, [])
+
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Call)
+        self.assertEqual(len(node.args), 3)
+        self.assertEqual(type(node.expr), AST.New)
+        self.assertEqual(len(node.expr.args), 2)
+        self.assertEqual(type(node.expr.expr), AST.New)
+        self.assertEqual(len(node.expr.expr.args), 1)
+        self.assertEqual(node.expr.expr.args[0].name, 'a')
+
+
 
     def test10PrimaryExpression(self):
         parser = Parser()

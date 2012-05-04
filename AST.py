@@ -53,11 +53,11 @@ class This(Node):
         super().__init__()
 
 class Call(Node):
-    def __init__(self, callee, args):
+    def __init__(self, expr, args):
         super().__init__()
-        self.callee = callee
+        self.expr = expr
         self.args = args
-        self.callee.parent = self
+        self.expr.parent = self
         for a in self.args: a.parent = self
 
 
@@ -126,3 +126,10 @@ class Literal(Node):
     def __init__(self, value):
         super().__init__()
         self.value = value
+
+
+class New(Node):
+    def __init__(self, expr, args):
+        super().__init__()
+        self.expr = expr
+        self.args = args

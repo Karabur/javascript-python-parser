@@ -162,7 +162,7 @@ class Parser:
         if self.match(TOK.RESERVED, 'new'):
             result = self.parseNewExpression()
         else:
-            result = self.parseMemberExpression(newLevel=0)
+            result = self.parseMemberExpression()
 
         while True:
             if self.match(TOK.PUNCTUATOR, '('):
@@ -171,20 +171,40 @@ class Parser:
             else:
                 return result
 
-    def parseMemberExpression(self, newLevel):
+    def parseNewExpression(self):
+        newCount = [0]
+        while self.match(TOK.RESERVED,'new'):
+            newCount[0] += 1
+            self.nextToken()
+        result = self.parseMemberExpression(newCount)
+        while newCount[0]:
+            result = AST.New(result,[])
+            newCount[0] -= 1
+        return result
+
+    #we use array trick to pass mutable list and use modified value in caller
+    def parseMemberExpression(self, newCount=None):
         # MemberExpression ::
         #(PrimaryExpression | FunctionLiteral)
         #   ('[' Expression ']' | '.' Identifier | Arguments)*
         result = None
+        if not newCount: newCount = [0]
         if self.match(TOK.RESERVED, 'function'):
             #todo: parse function expression
             pass
         else:
             result = self.parsePrimaryExpression()
 
+
         while True:
             #todo:parse [] . ()
-            return result
+            if self.match(TOK.PUNCTUATOR,'('):
+                if not newCount[0]: return result
+                args = self.parseArguments()
+                newCount[0] -= 1
+                result = AST.New(result,args)
+            else:
+                return result
 
 
     def parsePrimaryExpression(self):
@@ -230,10 +250,6 @@ class Parser:
                 done = True
         self.expect(TOK.PUNCTUATOR, ')')
         return arguments
-
-    def parseNewExpression(self):
-        #todo: unfinished!
-        pass
 
     def parseArrayLiteral(self):
         list = []
