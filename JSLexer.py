@@ -359,4 +359,5 @@ def tokenToStr(token,value = None):
     if token == TOK.ID: return 'Identifier'
     if token == TOK.EOF: return 'EOF'
     if token == TOK.PUNCTUATOR: return value
+    if token == TOK.STRING: return 'String'
     return 'token:'+str(token) + ' \''+value+'\''

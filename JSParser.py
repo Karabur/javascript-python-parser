@@ -22,7 +22,6 @@ class FIRST:
     FunctionDeclaration = [(TOK.RESERVED, 'function')]
 
 
-
 class Parser:
     def __init__(self):
         self.state = 0
@@ -61,7 +60,7 @@ class Parser:
         if not self.match(token, value):
             if value == None: value = ''
             else: value = ' ' + value
-            self.error('Expected:' + JSLexer.tokenToStr(token,value) + ' ,got \'' + self.lookup()[1] + '\'')
+            self.error('Expected:' + JSLexer.tokenToStr(token, value) + ' ,got \'' + self.lookup()[1] + '\'')
         return self.nextToken()
 
     def nextToken(self):
@@ -163,12 +162,12 @@ class Parser:
         if self.match(TOK.RESERVED, 'new'):
             result = self.parseNewExpression()
         else:
-            result = self.parseMemberExpression(newLevel = 0)
+            result = self.parseMemberExpression(newLevel=0)
 
         while True:
             if self.match(TOK.PUNCTUATOR, '('):
                 args = self.parseArguments()
-                result = AST.Call(result,args)
+                result = AST.Call(result, args)
             else:
                 return result
 
@@ -198,8 +197,11 @@ class Parser:
         if self.match(TOK.NUMERIC):
             token = self.nextToken()
             return AST.Number(token[1])
-        if self.match(TOK.PUNCTUATOR,'['):
+        if self.match(TOK.PUNCTUATOR, '['):
             return self.parseArrayLiteral()
+
+        if self.match(TOK.PUNCTUATOR, '{'):
+            return self.parseObjectLiteral()
 
         #todo: not finished
         self.unexpected()
@@ -223,19 +225,82 @@ class Parser:
 
     def parseArrayLiteral(self):
         list = []
-        self.expect(TOK.PUNCTUATOR,'[')
-        done = self.match(TOK.PUNCTUATOR,']')
+        self.expect(TOK.PUNCTUATOR, '[')
+        done = self.match(TOK.PUNCTUATOR, ']')
         while not done:
             if self.match(TOK.PUNCTUATOR, ','):
                 list.append(AST.HoleLiteral())
             else:
                 list.append(self.parseAssignmentExpression())
-            if not self.match(TOK.PUNCTUATOR,']'):
+            if not self.match(TOK.PUNCTUATOR, ']'):
                 self.expect(TOK.PUNCTUATOR, ',')
             else:
                 done = True
-        self.expect(TOK.PUNCTUATOR,']')
+        self.expect(TOK.PUNCTUATOR, ']')
         return AST.Array(list)
+
+    def parseObjectLiteral(self):
+        self.expect(TOK.PUNCTUATOR, '{')
+        properties = []
+
+        while not self.match(TOK.PUNCTUATOR, '}'):
+            if self.match(TOK.ID) or self.match(TOK.RESERVED) or self.match(TOK.FUTURE_RESERVED):
+                key = self.nextToken()[1]
+                if key == 'get' or key == 'set':
+                    #pass properties to parse function because of tricky parsing of getter-setter
+                    #they must be combined to one accessor property
+                    self.parseGetSetProperty(key != 'get', properties)
+                    if not self.match(TOK.PUNCTUATOR, '}'): self.expect(TOK.PUNCTUATOR, ',')
+                    continue
+            elif self.match(TOK.NUMERIC):
+                key = self.nextToken()[1]
+            else:
+                key = self.expect(TOK.STRING)[1]
+            self.expect(TOK.PUNCTUATOR, ':')
+            value = self.parseAssignmentExpression()
+
+            #todo: check if accessor property exists
+            properties.append(AST.ObjectProperty(key, value))
+
+            if not self.match(TOK.PUNCTUATOR, '}'): self.expect(TOK.PUNCTUATOR, ',')
+
+        self.expect(TOK.PUNCTUATOR, '}')
+        return AST.ObjectLiteral(properties)
+
+    def parseGetSetProperty(self, isSetter, properties):
+        paramName = getterBody = setterBody = None
+
+        if self.match(TOK.ID) or self.match(TOK.RESERVED) or self.match(TOK.FUTURE_RESERVED)\
+           or self.match(TOK.NUMERIC) or self.match(TOK.STRING):
+            key = self.nextToken()[1]
+            self.expect(TOK.PUNCTUATOR, '(')
+            if isSetter: paramName = self.expect(TOK.ID)[1]
+            self.expect(TOK.PUNCTUATOR, ')')
+            self.expect(TOK.PUNCTUATOR, '{')
+            if isSetter: setterBody = self.parseSourceElements()
+            else: getterBody = self.parseSourceElements()
+            self.expect(TOK.PUNCTUATOR, '}')
+
+            founded = None
+            for s in properties:
+                if s.key == key:
+                    if type(s) != AST.ObjectGetSetProperty:
+                        self.error('Can not have both data and accessor property with same name!')
+                    else:
+                        if setterBody and s.setterBody: self.error('Can not have multiple accessor property with same name!')
+                        if getterBody and s.getter: self.error('Can not have multiple accessor property with same name!')
+                    if isSetter:
+                        s.setterBody = setterBody
+                        s.paramName = paramName
+                    else:
+                        s.getterBody = getterBody
+                    founded = s
+                break
+            if not founded:
+                properties.append(AST.ObjectGetSetProperty(key,getterBody,setterBody,paramName))
+        else:
+            self.unexpected()
+
 
 
 

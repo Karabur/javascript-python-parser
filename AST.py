@@ -78,3 +78,35 @@ class Array(Node):
 class HoleLiteral(Node):
     def __init__(self):
         super().__init__()
+
+
+class ObjectLiteral(Node):
+    def __init__(self, properties):
+        super().__init__()
+        self.properties = properties
+        for p in properties: p.parent = self
+
+#we store all keys as a string
+#but value always a node
+class ObjectProperty(Node):
+    def __init__(self, key, value):
+        super().__init__()
+        self.key = key
+        self.value = value
+        value.parent = self
+
+#key is still the string as for the object property
+class ObjectGetSetProperty(Node):
+    def __init__(self, key, getterBody=None, setterBody=None, paramName = None):
+        super().__init__()
+        self.key = key
+        self.getterBody = getterBody
+        self.setterBody = setterBody
+        self.paramName = paramName
+
+class String(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+

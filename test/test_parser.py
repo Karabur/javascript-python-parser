@@ -129,16 +129,50 @@ class ParserTestCase(unittest.TestCase):
 
     def test10PrimaryExpression(self):
         parser = Parser()
-        parser.src = '[] [1,a,3]'
+        parser.src = '[] [1,a,,3]'
         parser.reset()
 
         node = parser.parsePrimaryExpression()
         self.assertEqual(type(node), AST.Array)
 
         node = parser.parsePrimaryExpression()
-        self.assertEqual(len(node.items), 3)
+        self.assertEqual(len(node.items), 4)
         self.assertEqual(node.items[0].value, '1')
         self.assertEqual(node.items[1].name, 'a')
+        self.assertEqual(type(node.items[2]), AST.HoleLiteral)
+
+        parser.src ='{} {a:1} {a:1,b:a,1:2} {get a() {var a=1;},set "asd"(val) {}, set a(value) {}}'
+        parser.reset()
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.ObjectLiteral)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(len(node.properties), 1)
+        self.assertEqual(type(node.properties[0]), AST.ObjectProperty)
+        self.assertEqual(node.properties[0].key, 'a')
+        self.assertEqual(node.properties[0].value.value, '1')
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(len(node.properties), 3)
+        self.assertEqual(node.properties[1].key, 'b')
+        self.assertEqual(node.properties[1].value.name, 'a')
+        self.assertEqual(node.properties[2].key, '1')
+        self.assertEqual(node.properties[2].value.value, '2')
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(len(node.properties), 2)
+        self.assertEqual(type(node.properties[0]), AST.ObjectGetSetProperty)
+        self.assertEqual(len(node.properties[0].getterBody), 1)
+        self.assertEqual(type(node.properties[0].setterBody), list)
+        self.assertEqual(node.properties[0].paramName, 'value')
+        self.assertEqual(node.properties[0].key, 'a')
+
+        self.assertEqual(type(node.properties[1]), AST.ObjectGetSetProperty)
+        self.assertEqual(node.properties[1].key, 'asd')
+        self.assertEqual(node.properties[1].getterBody, None)
+        self.assertEqual(type(node.properties[1].setterBody), list)
+        self.assertEqual(node.properties[1].paramName, 'val')
 
 
 
