@@ -148,7 +148,7 @@ class ParserTestCase(unittest.TestCase):
 
     def test10PrimaryExpression(self):
         parser = Parser()
-        parser.src = 'this asd false true null [] [1,a,,3]'
+        parser.src = 'this asd false true null /asd/i [] [1,a,,3]'
         parser.reset()
 
         node = parser.parsePrimaryExpression()
@@ -163,6 +163,10 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.Literal)
         node = parser.parsePrimaryExpression()
         self.assertEqual(type(node), AST.Literal)
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.Literal)
+        self.assertEqual(node.value, '/asd/i')
 
         node = parser.parsePrimaryExpression()
         self.assertEqual(type(node), AST.Array)

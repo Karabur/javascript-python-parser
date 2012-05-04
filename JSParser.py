@@ -37,7 +37,7 @@ class Parser:
     def reset(self):
         self.lexer.setSrc(self.src)
         self.lookupToken = None
-        self.REMode = False
+        self.REMode = True
         self.currentNode = None
         self.ASTRoot = None
 
@@ -234,6 +234,9 @@ class Parser:
 
         if self.match(TOK.PUNCTUATOR, '('):
             return self.parseExpression()
+
+        if self.match(TOK.REGEXP):
+            return AST.Literal(self.nextToken()[1])
 
         #todo: not finished
         self.unexpected()
