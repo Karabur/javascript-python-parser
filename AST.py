@@ -120,6 +120,8 @@ class BinaryExpression(Node):
         self.op = op
         self.left = left
         self.right = right
+        self.left.parent = self
+        self.right.parent = self
 
 
 class Literal(Node):
@@ -133,3 +135,15 @@ class New(Node):
         super().__init__()
         self.expr = expr
         self.args = args
+        self.expr.parent = self
+        for s in self.args: s.parent = self
+
+
+class Property(Node):
+    def __init__(self, object, property):
+        super().__init__()
+        self.object = object
+        self.property = property
+        self.object.parent = self
+        self.property.parent = self
+

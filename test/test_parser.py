@@ -100,6 +100,25 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.Number)
         self.assertEqual(node.value, '1')
 
+        parser.src = 'a[1] asd[b]'
+        parser.reset()
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Property)
+        self.assertEqual(node.object.name, 'a')
+        self.assertEqual(node.property.value, '1')
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Property)
+        self.assertEqual(node.object.name, 'asd')
+        self.assertEqual(node.property.name, 'b')
+
+        parser.src = 'a.b.c'
+        parser.reset()
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.Property)
+        self.assertEqual(node.property.name, 'c')
+        self.assertEqual(node.object.property.name, 'b')
+        self.assertEqual(node.object.object.name, 'a')
+
 
     def test09ParseCallLeftHandSideExpression(self):
         parser = Parser()

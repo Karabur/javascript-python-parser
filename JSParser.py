@@ -105,10 +105,13 @@ class Parser:
     def matchList(self, list):
         token = self.lookup()
         for listToken in list:
-            if listToken[1] == None:
-                if token[0] == listToken[0]: return True
-            elif token[1] == listToken[1] and token[0] == listToken[0]:
-                return True
+            if type(listToken) == tuple:
+                if listToken[1] == None:
+                    if token[0] == listToken[0]: return True
+                elif token[1] == listToken[1] and token[0] == listToken[0]:
+                    return True
+            else:
+                if token[0] == listToken: return True
         return False
 
     def parseBlock(self):
@@ -168,6 +171,15 @@ class Parser:
             if self.match(TOK.PUNCTUATOR, '('):
                 args = self.parseArguments()
                 result = AST.Call(result, args)
+            elif self.match(TOK.PUNCTUATOR, '['):
+                self.nextToken()
+                property = self.parseExpression()
+                result = AST.Property(result, property)
+                self.expect(TOK.PUNCTUATOR , ']')
+            elif self.match(TOK.PUNCTUATOR, '.'):
+                self.nextToken()
+                propName = self.parseIdentifierName()
+                result = AST.Property(result, propName)
             else:
                 return result
 
@@ -341,6 +353,10 @@ class Parser:
             result = AST.BinaryExpression(',', result, self.parseAssignmentExpression())
         return result
 
+    def parseIdentifierName(self):
+        if self.matchList([TOK.ID,TOK.FUTURE_RESERVED,TOK.RESERVED]):
+            return AST.Identifier(self.nextToken()[1])
+        self.unexpected()
 
 
 
