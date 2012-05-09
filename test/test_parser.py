@@ -92,28 +92,28 @@ class ParserTestCase(unittest.TestCase):
         parser = Parser()
         parser.src = 'a 1'
         parser.reset()
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Identifier)
         self.assertEqual(node.name, 'a')
 
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Number)
         self.assertEqual(node.value, '1')
 
         parser.src = 'a[1] asd[b]'
         parser.reset()
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.object.name, 'a')
         self.assertEqual(node.property.value, '1')
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.object.name, 'asd')
         self.assertEqual(node.property.name, 'b')
 
         parser.src = 'a.b.c'
         parser.reset()
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.property.name, 'c')
         self.assertEqual(node.object.property.name, 'b')
@@ -125,17 +125,17 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'b() c()() d(1)(2,a) '
         parser.reset()
 
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(type(node.expr), AST.Identifier)
         self.assertEqual(node.expr.name, 'b')
 
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(type(node.expr), AST.Call)
         self.assertEqual(node.expr.expr.name, 'c')
 
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(len(node.expr.args), 1)
         self.assertEqual(type(node.expr.args[0]), AST.Number)
         self.assertEqual(node.expr.args[0].value, '1')
@@ -148,13 +148,13 @@ class ParserTestCase(unittest.TestCase):
 
         parser.src = 'new a()    new new b(a)(23,3)(12,c,b)'
         parser.reset()
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.New)
         self.assertEqual(type(node.expr), AST.Identifier)
         self.assertEqual(node.expr.name, 'a')
         self.assertEqual(node.args, [])
 
-        node = parser.parseLeftHandSideExpression()
+        node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(len(node.args), 3)
         self.assertEqual(type(node.expr), AST.New)
@@ -330,7 +330,7 @@ class ParserTestCase(unittest.TestCase):
         parser.src = '1/2'
         parser.reset()
 
-        node = parser.parseBinaryExpression()
+        node = parser.parseBinaryExpression(False, 0)
         self.assertEqual(type(node), AST.BinaryExpression)
         self.assertEqual(node.left.value , '1')
         self.assertEqual(node.right.value, '2')
@@ -339,7 +339,7 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'a<<1>c>>d'
         parser.reset()
 
-        node = parser.parseBinaryExpression()
+        node = parser.parseBinaryExpression(False, 0)
         self.assertEqual(type(node.left), AST.BinaryExpression)
         self.assertEqual(type(node.right), AST.BinaryExpression)
         self.assertEqual(node.op, '>')
@@ -353,7 +353,7 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'a != b in c &2'
         parser.reset()
 
-        node = parser.parseBinaryExpression()
+        node = parser.parseBinaryExpression(False, 0)
         self.assertEqual(node.op, '&')
         self.assertEqual(node.left.op, '!=')
         self.assertEqual(node.right.value, '2')
@@ -362,15 +362,25 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'a + b in d'
         parser.reset()
 
-        node = parser.parseBinaryExpression()
+        node = parser.parseBinaryExpression(False, 0)
         self.assertEqual(node.op, 'in')
         self.assertEqual(node.left.op, '+')
 
         parser.src = 'a + b in d'
         parser.reset()
 
-        node = parser.parseBinaryExpression(True)
+        node = parser.parseBinaryExpression(True,0)
         self.assertEqual(node.op, '+')
         self.assertEqual(node.left.name, 'a')
         self.assertEqual(node.right.name, 'b')
+
+    def test15parseConditionalExpression(self):
+        parser = Parser()
+
+        parser.src = '1+2 ? 4 : 5'
+        parser.reset()
+
+        node = parser.parseConditionalExpression(False)
+        self.assertEqual(type(node), AST.ConditionalExpression)
+
 

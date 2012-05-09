@@ -155,25 +155,25 @@ class Parser:
     def parseVariableStatement(self):
         declarations = []
         self.expect(TOK.RESERVED, 'var')
-        declarations.append(self.parseVariableDeclaration())
+        declarations.append(self.parseVariableDeclaration(False))
         while self.match(TOK.PUNCTUATOR, ','):
-            declarations.append(self.parseVariableDeclaration())
+            declarations.append(self.parseVariableDeclaration(False))
         self.expect(TOK.PUNCTUATOR, ';')
         return AST.VariableStatement(declarations)
 
-    def parseVariableDeclaration(self):
+    def parseVariableDeclaration(self, noIn):
         id = self.expect(TOK.ID)[1]
         initializer = None
         if self.match(TOK.PUNCTUATOR, '='):
             self.nextToken()
-            initializer = self.parseAssignmentExpression()
+            initializer = self.parseAssignmentExpression(noIn)
         return AST.VariableDeclaration(id, initializer)
 
-    def parseAssignmentExpression(self):
+    def parseAssignmentExpression(self, noIn):
         #todo: unfinished!
-        return self.parseLeftHandSideExpression()
+        return self.parseConditionalExpression(noIn)
 
-    def parseLeftHandSideExpression(self):
+    def parseLeftHandSideExpression(self, noIn):
         # LeftHandSideExpression ::
         # (NewExpression | MemberExpression) ...
         result = None
@@ -188,7 +188,7 @@ class Parser:
                 result = AST.Call(result, args)
             elif self.match(TOK.PUNCTUATOR, '['):
                 self.nextToken()
-                property = self.parseExpression()
+                property = self.parseExpression(noIn)
                 result = AST.Property(result, property)
                 self.expect(TOK.PUNCTUATOR, ']')
             elif self.match(TOK.PUNCTUATOR, '.'):
@@ -260,7 +260,7 @@ class Parser:
 
         if self.match(TOK.PUNCTUATOR, '('):
             self.expect(TOK.PUNCTUATOR, '(')
-            result = self.parseExpression()
+            result = self.parseExpression(False)
             self.expect(TOK.PUNCTUATOR, ')')
             return result
 
@@ -275,7 +275,7 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, '(')
         done = self.match(TOK.PUNCTUATOR, ')')
         while not done:
-            arguments.append(self.parseAssignmentExpression())
+            arguments.append(self.parseAssignmentExpression(False))
             if self.match(TOK.PUNCTUATOR, ','):
                 self.nextToken()
             else:
@@ -291,7 +291,7 @@ class Parser:
             if self.match(TOK.PUNCTUATOR, ','):
                 list.append(AST.HoleLiteral())
             else:
-                list.append(self.parseAssignmentExpression())
+                list.append(self.parseAssignmentExpression(False))
             if not self.match(TOK.PUNCTUATOR, ']'):
                 self.expect(TOK.PUNCTUATOR, ',')
             else:
@@ -317,7 +317,7 @@ class Parser:
             else:
                 key = self.expect(TOK.STRING)[1]
             self.expect(TOK.PUNCTUATOR, ':')
-            value = self.parseAssignmentExpression()
+            value = self.parseAssignmentExpression(False)
 
             #todo: check if accessor property exists
             properties.append(AST.ObjectProperty(key, value))
@@ -361,11 +361,11 @@ class Parser:
         else:
             self.unexpected()
 
-    def parseExpression(self):
-        result = self.parseAssignmentExpression()
+    def parseExpression(self, noIn):
+        result = self.parseAssignmentExpression(noIn)
         while self.match(TOK.PUNCTUATOR, ','):
             self.nextToken()
-            result = AST.BinaryExpression( result, self.parseAssignmentExpression(), ',')
+            result = AST.BinaryExpression( result, self.parseAssignmentExpression(noIn), ',')
         return result
 
     def parseIdentifierName(self):
@@ -374,7 +374,7 @@ class Parser:
         self.unexpected()
 
     def parsePostfixExpression(self):
-        result = self.parseLeftHandSideExpression()
+        result = self.parseLeftHandSideExpression(False)
         if not self.LTAhead() and self.matchList([(TOK.PUNCTUATOR, '++'), (TOK.PUNCTUATOR, '--')]):
             next = self.nextToken()[1]
             result = AST.PostfixExpression(result, next)
@@ -396,10 +396,9 @@ class Parser:
         else:
             return self.parsePostfixExpression()
 
-    def parseBinaryExpression(self, noIn = False, precedence = 0):
+    def parseBinaryExpression(self, noIn, precedence):
         x= self.parseUnaryExpression()
 
-        #todo: is this ok to parse DivToken for all operators?
         for i in reversed(range(precedence,self.Precedence(self.lookup(), noIn)+1)):
             while self.Precedence(self.lookup(), noIn) == i:
                 op = self.nextToken()[1]
@@ -419,6 +418,19 @@ class Parser:
     def rewind(self):
         self.lexer.rewind()
         self.lookupToken = self.LTLookup = None
+
+    def parseConditionalExpression(self, noIn):
+        result = self.parseBinaryExpression(noIn, 0)
+
+        if self.match(TOK.PUNCTUATOR, '?'):
+            self.nextToken()
+            #left is always accept in
+            left = self.parseAssignmentExpression(False)
+            self.expect(TOK.PUNCTUATOR, ':')
+            right = self.parseAssignmentExpression(noIn)
+            result = AST.ConditionalExpression(result, left, right)
+
+        return result
 
 
 

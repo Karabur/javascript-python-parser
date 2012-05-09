@@ -162,3 +162,14 @@ class UnaryExpression(Node):
         self.expr = expr
         self.op = op
         self.expr.parent = self
+
+
+class ConditionalExpression(Node):
+    def __init__(self, expr, left, right):
+        super().__init__()
+        self.expr = expr
+        self.left = left
+        self.right = right
+        self.expr.parent = self
+        self.left.parent = self
+        self.right.parent = self
