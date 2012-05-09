@@ -29,8 +29,13 @@ class Parser:
         self.lexer = Lexer()
 
     def lookup(self):
-        if not self.lookupToken:
-            self.lookupToken = self.lexer.getToken(self.REMode)
+        if not self.lookupToken or self.LTLookup == None:
+            self.lookupToken = self.lexer.getToken(self.REMode,True)
+            if self.lookupToken[0] == TOK.LT:
+                self.LTLookup = True
+                self.lookupToken = self.lexer.getToken(self.REMode)
+            else:
+                self.LTLookup = False
         return self.lookupToken
 
 
@@ -40,6 +45,7 @@ class Parser:
         self.REMode = True
         self.currentNode = None
         self.ASTRoot = None
+        self.LTLookup = None
 
 
     def buildAST(self):
@@ -66,7 +72,7 @@ class Parser:
     def nextToken(self):
         if self.lookupToken != None:
             tok = self.lookupToken
-            self.lookupToken = None
+            self.lookupToken = self.LTLookup = None
             return tok
         return self.lexer.getNext()
 
@@ -357,6 +363,19 @@ class Parser:
         if self.matchList([TOK.ID,TOK.FUTURE_RESERVED,TOK.RESERVED]):
             return AST.Identifier(self.nextToken()[1])
         self.unexpected()
+
+    def parsePostfixExpression(self):
+        result = self.parseLeftHandSideExpression()
+        if not self.LTAhead() and self.matchList([(TOK.PUNCTUATOR, '++'),(TOK.PUNCTUATOR, '--')]):
+            next = self.nextToken()[1]
+            result = AST.PostfixExpression(result,next)
+        return result
+
+    def LTAhead(self):
+        if self.LTLookup == None:
+            self.lookup()
+        return self.LTLookup
+
 
 
 

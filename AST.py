@@ -147,3 +147,10 @@ class Property(Node):
         self.object.parent = self
         self.property.parent = self
 
+
+class PostfixExpression(Node):
+    def __init__(self, expr, op):
+        super().__init__()
+        self.expr = expr
+        self.op = op
+        self.expr.parent = self

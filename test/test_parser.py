@@ -244,5 +244,40 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node.left.left), AST.Array)
         self.assertEqual(type(node.left.right), AST.ObjectLiteral)
 
+    def test11LTLookAhead(self):
+        parser = Parser()
+        parser.src = 'asd eee\nddd\n'
+        parser.reset()
+
+        self.assertEqual(parser.lookup()[1], 'asd')
+        parser.nextToken()
+        self.assertEqual(parser.LTAhead(), False)
+        parser.nextToken()
+        self.assertEqual(parser.lookup()[1], 'ddd')
+        self.assertEqual(parser.LTAhead(), True)
+        parser.nextToken()
+        self.assertEqual(parser.LTAhead(), True)
+
+    def test12PostfixExpression(self):
+        parser = Parser()
+        parser.src='a ++ b-- c\n++'
+        parser.reset()
+
+        node = parser.parsePostfixExpression()
+        self.assertEqual(type(node), AST.PostfixExpression)
+        self.assertEqual(node.expr.name, 'a')
+        self.assertEqual(node.op, '++')
+
+        node = parser.parsePostfixExpression()
+        self.assertEqual(node.expr.name, 'b')
+        self.assertEqual(node.op, '--')
+
+        node = parser.parsePostfixExpression()
+        self.assertEqual(type(node), AST.Identifier)
+        self.assertEqual(node.name, 'c')
+
+        self.assertEqual(parser.nextToken()[1],'++')
+
+
 
 

@@ -18,7 +18,7 @@ SINGLE_CHARACTER_ESC_SEQ = {'b': '\u0008', 't': '\u0009', 'n': '\u000A', 'v': '\
 #tokens
 
 class TOK :
-    NL= 1
+    LT= 1
     SINGLE_COMMENT= 2
     MULTI_COMMENT= 3
     MULTINL_COMMENT= 4
@@ -89,6 +89,9 @@ class Lexer:
             if self.isEOF():
                 return TOK.EOF, ''
             self.pointer = self.forward
+            if isLineTerm(self.lookup()):
+                self.forward += 1
+                return self.extract(TOK.LT)
             if isWS(self.lookup()):
                 self.forward += 1
                 return TOK.WS, ''
@@ -196,13 +199,13 @@ class Lexer:
 
     #NLMode - is the NL must be returned,
     #REMode - RegularExpression mode
-    def getToken(self, REMode=True, NLMode=False):
+    def getToken(self, REMode=True, LTMode=False):
         token = self.getNext(REMode)
         while token[0] == TOK.SINGLE_COMMENT or token[0] == TOK.MULTI_COMMENT or token[0] == TOK.WS\
-              or (token[0] == TOK.NL and not NLMode) or (token[0] == TOK.MULTINL_COMMENT and not NLMode):
+              or (token[0] == TOK.LT and not LTMode) or (token[0] == TOK.MULTINL_COMMENT and not LTMode):
             token = self.getNext(REMode)
-        if token[0] == TOK.MULTINL_COMMENT and NLMode:
-            return TOK.NL, ''
+        if token[0] == TOK.MULTINL_COMMENT and LTMode:
+            return TOK.LT, ''
         return token
 
     def extractNumeric(self):
