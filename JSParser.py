@@ -21,6 +21,19 @@ class FIRST:
     ]
     FunctionDeclaration = [(TOK.RESERVED, 'function')]
 
+#lowest precedence - first (index as a precedence)
+Precedence = [
+    ['||'],
+    ['&&'],
+    ['|'],
+    ['^'],
+    ['&'],
+    ['==','!=','===','!==',],
+    ['<','>','<=','>=','instanceof','in'],
+    ['<<','>>','>>>'],
+    ['+','-'],
+    ['*','/','%']
+]
 
 class Parser:
     def __init__(self):
@@ -30,19 +43,26 @@ class Parser:
 
     def lookup(self):
         if not self.lookupToken or self.LTLookup == None:
-            self.lookupToken = self.lexer.getToken(self.REMode, True)
+
+            self.lookupToken = self.lexer.getToken(False, True)
             if self.lookupToken[0] == TOK.LT:
                 self.LTLookup = True
-                self.lookupToken = self.lexer.getToken(self.REMode)
+                self.lookupToken = self.lexer.getToken()
             else:
                 self.LTLookup = False
         return self.lookupToken
+
+    def nextToken(self, REMode = False):
+        if self.lookupToken != None and not REMode:
+            tok = self.lookupToken
+            self.lookupToken = self.LTLookup = None
+            return tok
+        return self.lexer.getToken(REMode)
 
 
     def reset(self):
         self.lexer.setSrc(self.src)
         self.lookupToken = None
-        self.REMode = True
         self.currentNode = None
         self.ASTRoot = None
         self.LTLookup = None
@@ -68,14 +88,6 @@ class Parser:
             else: value = ' ' + value
             self.error('Expected:' + JSLexer.tokenToStr(token, value) + ' ,got \'' + self.lookup()[1] + '\'')
         return self.nextToken()
-
-    def nextToken(self):
-        if self.lookupToken != None:
-            tok = self.lookupToken
-            self.lookupToken = self.LTLookup = None
-            return tok
-        return self.lexer.getNext()
-
 
     def parseProgram(self):
         self.ASTRoot = AST.ProgramNode(self.parseSourceElements())
@@ -138,10 +150,7 @@ class Parser:
 
     def unexpected(self):
         token = self.lookup()
-        if token[1] != None:
-            self.error('Unexpected: ' + token[1])
-        else:
-            self.error('Unexpected: ' + JSLexer.tokenToStr(token[0]))
+        self.error('Unexpected: ' + JSLexer.tokenToStr(token))
 
     def parseVariableStatement(self):
         declarations = []
@@ -255,8 +264,9 @@ class Parser:
             self.expect(TOK.PUNCTUATOR, ')')
             return result
 
-        if self.match(TOK.REGEXP):
-            return AST.Literal(self.nextToken()[1])
+        if self.match(TOK.DIV_PUNCTUATOR) :
+            self.rewind()#reparse as a regexp
+            return AST.Literal(self.nextToken(True)[1])
 
         self.unexpected()
 
@@ -355,7 +365,7 @@ class Parser:
         result = self.parseAssignmentExpression()
         while self.match(TOK.PUNCTUATOR, ','):
             self.nextToken()
-            result = AST.BinaryExpression(',', result, self.parseAssignmentExpression())
+            result = AST.BinaryExpression( result, self.parseAssignmentExpression(), ',')
         return result
 
     def parseIdentifierName(self):
@@ -385,6 +395,30 @@ class Parser:
             return AST.UnaryExpression(self.parseUnaryExpression(), next[1])
         else:
             return self.parsePostfixExpression()
+
+    def parseBinaryExpression(self, noIn = False, precedence = 0):
+        x= self.parseUnaryExpression()
+
+        #todo: is this ok to parse DivToken for all operators?
+        for i in reversed(range(precedence,self.Precedence(self.lookup(), noIn)+1)):
+            while self.Precedence(self.lookup(), noIn) == i:
+                op = self.nextToken()[1]
+                x = AST.BinaryExpression(x, self.parseBinaryExpression(noIn, i), op)
+
+        return x
+
+    #return -1 if not an binary op
+    def Precedence(self, token, noIn):
+        if token[1] == 'in' and noIn: return -1
+        for prec, ops in enumerate(Precedence):
+            for op in ops:
+                if op == token[1]:
+                    return prec
+        return -1
+
+    def rewind(self):
+        self.lexer.rewind()
+        self.lookupToken = self.LTLookup = None
 
 
 

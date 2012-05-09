@@ -115,7 +115,7 @@ class String(Node):
 
 
 class BinaryExpression(Node):
-    def __init__(self, op, left, right):
+    def __init__(self, left, right, op):
         super().__init__()
         self.op = op
         self.left = left

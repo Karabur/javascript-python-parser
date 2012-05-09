@@ -324,3 +324,53 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.op, '!')
 
 
+    def test14parseBinaryExpression(self):
+        parser = Parser()
+
+        parser.src = '1/2'
+        parser.reset()
+
+        node = parser.parseBinaryExpression()
+        self.assertEqual(type(node), AST.BinaryExpression)
+        self.assertEqual(node.left.value , '1')
+        self.assertEqual(node.right.value, '2')
+        self.assertEqual(node.op, '/')
+
+        parser.src = 'a<<1>c>>d'
+        parser.reset()
+
+        node = parser.parseBinaryExpression()
+        self.assertEqual(type(node.left), AST.BinaryExpression)
+        self.assertEqual(type(node.right), AST.BinaryExpression)
+        self.assertEqual(node.op, '>')
+        self.assertEqual(node.left.op, '<<')
+        self.assertEqual(node.left.left.name, 'a')
+        self.assertEqual(node.left.right.value, '1')
+        self.assertEqual(node.right.op, '>>')
+        self.assertEqual(node.right.left.name, 'c')
+        self.assertEqual(node.right.right.name, 'd')
+
+        parser.src = 'a != b in c &2'
+        parser.reset()
+
+        node = parser.parseBinaryExpression()
+        self.assertEqual(node.op, '&')
+        self.assertEqual(node.left.op, '!=')
+        self.assertEqual(node.right.value, '2')
+        self.assertEqual(node.left.right.op, 'in')
+
+        parser.src = 'a + b in d'
+        parser.reset()
+
+        node = parser.parseBinaryExpression()
+        self.assertEqual(node.op, 'in')
+        self.assertEqual(node.left.op, '+')
+
+        parser.src = 'a + b in d'
+        parser.reset()
+
+        node = parser.parseBinaryExpression(True)
+        self.assertEqual(node.op, '+')
+        self.assertEqual(node.left.name, 'a')
+        self.assertEqual(node.right.name, 'b')
+

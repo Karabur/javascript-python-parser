@@ -169,20 +169,31 @@ class LexerTestCase(unittest.TestCase):
         lex=Lexer()
         lex.setSrc('asd/asddd/iuy')
         lex.getToken()
-        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/asddd/iuy'))
+        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/asddd/iuy'))
         lex.setSrc('/asddd/')
-        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/asddd/'))
+        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/asddd/'))
         lex.setSrc('/\\dasddd/')
-        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/\\dasddd/'))
+        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/\\dasddd/'))
         lex.setSrc('/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/')
-        self.assertEqual(lex.getToken(), (TOK.REGEXP,'/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/'))
+        self.assertEqual(lex.getToken(True), (TOK.REGEXP,'/[asd\\sdd](e)?:(1)+[a-z,1-9]asddd/'))
 
     def testDivPunctuator(self):
         lex=Lexer()
         lex.setSrc('asd/333/=')
         lex.getToken()
-        self.assertEqual(lex.getToken(False), (TOK.DIV_PUNCTUATOR,'/'))
+        self.assertEqual(lex.getToken(), (TOK.DIV_PUNCTUATOR,'/'))
         lex.getToken()
-        self.assertEqual(lex.getToken(False), (TOK.DIV_PUNCTUATOR,'/='))
+        self.assertEqual(lex.getToken(), (TOK.DIV_PUNCTUATOR,'/='))
+
+    def testRewind(self):
+        lex = Lexer()
+        lex.setSrc('asd/ee/')
+        self.assertEqual(lex.getToken(),(TOK.ID, 'asd'))
+        lex.rewind()
+        self.assertEqual(lex.getToken(),(TOK.ID, 'asd'))
+        self.assertEqual(lex.getToken(True),(TOK.REGEXP, '/ee/'))
+        lex.rewind()
+        self.assertEqual(lex.getToken(False),(TOK.DIV_PUNCTUATOR, '/'))
+
 
 

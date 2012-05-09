@@ -80,11 +80,12 @@ class Lexer:
         self.pointer = 0
         self.forward = 0
         self.eof = False
+        self.prevPos = 0
 
     def extract(self, tokenType):
         return tokenType, self.src[self.pointer:self.forward]
 
-    def getNext(self, REMode=True):
+    def getNext(self, REMode=False):
         try:
             if self.isEOF():
                 return TOK.EOF, ''
@@ -199,7 +200,8 @@ class Lexer:
 
     #NLMode - is the NL must be returned,
     #REMode - RegularExpression mode
-    def getToken(self, REMode=True, LTMode=False):
+    def getToken(self, REMode=False, LTMode=False):
+        self.prevPos = self.forward
         token = self.getNext(REMode)
         while token[0] == TOK.SINGLE_COMMENT or token[0] == TOK.MULTI_COMMENT or token[0] == TOK.WS\
               or (token[0] == TOK.LT and not LTMode) or (token[0] == TOK.MULTINL_COMMENT and not LTMode):
@@ -353,12 +355,14 @@ class Lexer:
                 raise Exception('Error parsing RegExp')
         self.forward += 1
 
+    def rewind(self):
+        self.position = self.forward = self.prevPos
 
 
 def tokenToStr(token,value = None):
     if value == None and type(token) == tuple:
-        token = token[0]
         value = token[1]
+        token = token[0]
     if token == TOK.ID: return 'Identifier'
     if token == TOK.EOF: return 'EOF'
     if token == TOK.PUNCTUATOR: return value
