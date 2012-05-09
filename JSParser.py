@@ -160,6 +160,9 @@ class Parser:
             return self.parseBlock()
         if self.match(TOK.RESERVED, 'var'):
             return self.parseVariableStatement()
+        if self.match(TOK.PUNCTUATOR, ';'):
+            self.nextToken()
+            return AST.EmptyStatement()
 
         self.unexpected()
 

@@ -183,3 +183,8 @@ class AssignmentExpression(Node):
         self.op = op
         self.left.parent = self
         self.right.parent = self
+
+
+class EmptyStatement(Node):
+    def __init__(self):
+        super().__init__()

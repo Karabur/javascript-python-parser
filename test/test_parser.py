@@ -398,3 +398,14 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.left.property.value, '1')
         self.assertEqual(node.right.op, '+=')
         self.assertEqual(node.right.right.value, '4')
+
+    def test17parseEmptyExpression(self):
+        parser = Parser()
+
+        parser.src = ';;'
+
+        parser.buildAST()
+
+        self.assertEqual(len(parser.ASTRoot.sourceElements),2)
+        self.assertEqual(type(parser.ASTRoot.sourceElements[0]),AST.EmptyStatement)
+        self.assertEqual(type(parser.ASTRoot.sourceElements[1]),AST.EmptyStatement)
