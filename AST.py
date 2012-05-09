@@ -36,9 +36,9 @@ class VariableStatement(Node):
 
 
 class VariableDeclaration(Node):
-    def __init__(self, id, initializer):
+    def __init__(self, name, initializer):
         super().__init__()
-        self.id = id
+        self.name = name
         self.initializer = initializer
         if initializer != None: self.initializer.parent = self
 

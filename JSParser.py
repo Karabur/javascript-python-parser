@@ -177,12 +177,12 @@ class Parser:
         return AST.VariableStatement(declarations)
 
     def parseVariableDeclaration(self, noIn):
-        id = self.expect(TOK.ID)[1]
+        name = self.expect(TOK.ID)[1]
         initializer = None
         if self.match(TOK.PUNCTUATOR, '='):
             self.nextToken()
             initializer = self.parseAssignmentExpression(noIn)
-        return AST.VariableDeclaration(id, initializer)
+        return AST.VariableDeclaration(name, initializer)
 
     def parseAssignmentExpression(self, noIn):
         result = self.parseConditionalExpression(noIn)
