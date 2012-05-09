@@ -86,6 +86,7 @@ class Parser:
     def buildAST(self):
         self.reset()
         self.parseProgram()
+        return self.ASTRoot
 
     def match(self, token, value=None):
         if value == None:
@@ -119,10 +120,10 @@ class Parser:
                 arguments.append(self.expect(TOK.ID)[1])
         self.expect(TOK.PUNCTUATOR, ')')
         self.expect(TOK.PUNCTUATOR, '{')
-        sourceElements = self.parseSourceElements()
+        statements = self.parseSourceElements()
         self.expect(TOK.PUNCTUATOR, '}')
 
-        return AST.FunctionDeclaration(name, arguments, sourceElements)
+        return AST.FunctionDeclaration(name, arguments, statements)
 
     def parseSourceElement(self):
         if self.matchList(FIRST.FunctionDeclaration):
@@ -163,6 +164,8 @@ class Parser:
         if self.match(TOK.PUNCTUATOR, ';'):
             self.nextToken()
             return AST.EmptyStatement()
+
+
 
         self.unexpected()
 

@@ -20,17 +20,17 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'function name1() {}'
         parser.buildAST()
 
-        self.assertEqual(len(parser.ASTRoot.sourceElements),1)
-        self.assertEqual(type(parser.ASTRoot.sourceElements[0]), AST.FunctionDeclaration)
-        self.assertEqual(parser.ASTRoot.sourceElements[0].name, 'name1')
-        self.assertEqual(parser.ASTRoot.sourceElements[0].parent, parser.ASTRoot)
+        self.assertEqual(len(parser.ASTRoot.statements),1)
+        self.assertEqual(type(parser.ASTRoot.statements[0]), AST.FunctionDeclaration)
+        self.assertEqual(parser.ASTRoot.statements[0].name, 'name1')
+        self.assertEqual(parser.ASTRoot.statements[0].parent, parser.ASTRoot)
 
     def test03ArgumentsFunctionDeclaration(self):
         parser = Parser()
         parser.src = 'function asd(aa,a23) {}'
         parser.buildAST()
 
-        node = parser.ASTRoot.sourceElements[0]
+        node = parser.ASTRoot.statements[0]
         self.assertEqual(len(node.arguments),2)
         self.assertEqual(node.arguments[0],'aa')
         self.assertEqual(node.arguments[1],'a23')
@@ -43,9 +43,9 @@ class ParserTestCase(unittest.TestCase):
 
         parser.buildAST()
 
-        node = parser.ASTRoot.sourceElements[0]
+        node = parser.ASTRoot.statements[0]
 
-        self.assertEqual(len(node.sourceElements),1)
+        self.assertEqual(len(node.statements),1)
 
     def test05ParseProgramAsBlockStatements(self):
         parser = Parser()
@@ -53,17 +53,17 @@ class ParserTestCase(unittest.TestCase):
 
         parser.buildAST()
 
-        self.assertEqual(len(parser.ASTRoot.sourceElements),1)
-        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(len(parser.ASTRoot.statements),1)
+        node = parser.ASTRoot.statements[0]
         self.assertEqual(type(node), AST.Block)
         parser.src = '{}{}'
 
         parser.buildAST()
 
-        self.assertEqual(len(parser.ASTRoot.sourceElements),2)
-        node = parser.ASTRoot.sourceElements[0]
+        self.assertEqual(len(parser.ASTRoot.statements),2)
+        node = parser.ASTRoot.statements[0]
         self.assertEqual(type(node), AST.Block)
-        node = parser.ASTRoot.sourceElements[1]
+        node = parser.ASTRoot.statements[1]
         self.assertEqual(type(node), AST.Block)
 
     def test06ParseBlockStatementInFunctionBody(self):
@@ -71,20 +71,20 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'function a(){ {} }'
 
         parser.buildAST()
-        node = parser.ASTRoot.sourceElements[0]
-        self.assertEqual(type(node.sourceElements[0]), AST.Block)
+        node = parser.ASTRoot.statements[0]
+        self.assertEqual(type(node.statements[0]), AST.Block)
 
     def test07ParseVariableStatement(self):
         parser = Parser()
         parser.src = 'var x;'
         parser.buildAST()
-        node = parser.ASTRoot.sourceElements[0]
+        node = parser.ASTRoot.statements[0]
         self.assertEqual(type(node), AST.VariableStatement)
         self.assertEqual(node.declarations[0].name,'x')
 
         parser.src = 'var x=1;'
         parser.buildAST()
-        node = parser.ASTRoot.sourceElements[0]
+        node = parser.ASTRoot.statements[0]
         self.assertEqual(type(node), AST.VariableStatement)
         self.assertEqual(node.declarations[0].initializer.value,'1')
         self.assertEqual(node.declarations[0].name,'x')
@@ -406,6 +406,15 @@ class ParserTestCase(unittest.TestCase):
 
         parser.buildAST()
 
-        self.assertEqual(len(parser.ASTRoot.sourceElements),2)
-        self.assertEqual(type(parser.ASTRoot.sourceElements[0]),AST.EmptyStatement)
-        self.assertEqual(type(parser.ASTRoot.sourceElements[1]),AST.EmptyStatement)
+        self.assertEqual(len(parser.ASTRoot.statements),2)
+        self.assertEqual(type(parser.ASTRoot.statements[0]),AST.EmptyStatement)
+        self.assertEqual(type(parser.ASTRoot.statements[1]),AST.EmptyStatement)
+
+#    def test18parseIfStatement(self):
+#        parser = Parser()
+#
+#        parser.src = ';;'
+#
+#        parser.buildAST()
+#
+#        self.assertEqual(len(parser.ASTRoot.statements),2)

@@ -7,18 +7,18 @@ class Node:
 
 
 class ProgramNode(Node):
-    def __init__(self, sourceElements):
+    def __init__(self, statements):
         super().__init__()
-        self.sourceElements = sourceElements
-        for s in self.sourceElements: s.parent = self
+        self.statements = statements
+        for s in self.statements: s.parent = self
 
 class FunctionDeclaration(Node):
-    def __init__(self,name,arguments,sourceElements):
+    def __init__(self,name,arguments,statements):
         super().__init__()
         self.name = name
         self.arguments = arguments
-        self.sourceElements = sourceElements
-        for s in self.sourceElements: s.parent = self
+        self.statements = statements
+        for s in self.statements: s.parent = self
 
 class Block(Node):
     def __init__(self, statements):
