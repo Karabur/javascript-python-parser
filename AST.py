@@ -154,3 +154,11 @@ class PostfixExpression(Node):
         self.expr = expr
         self.op = op
         self.expr.parent = self
+
+
+class UnaryExpression(Node):
+    def __init__(self, expr, op):
+        super().__init__()
+        self.expr = expr
+        self.op = op
+        self.expr.parent = self

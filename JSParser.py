@@ -30,7 +30,7 @@ class Parser:
 
     def lookup(self):
         if not self.lookupToken or self.LTLookup == None:
-            self.lookupToken = self.lexer.getToken(self.REMode,True)
+            self.lookupToken = self.lexer.getToken(self.REMode, True)
             if self.lookupToken[0] == TOK.LT:
                 self.LTLookup = True
                 self.lookupToken = self.lexer.getToken(self.REMode)
@@ -181,7 +181,7 @@ class Parser:
                 self.nextToken()
                 property = self.parseExpression()
                 result = AST.Property(result, property)
-                self.expect(TOK.PUNCTUATOR , ']')
+                self.expect(TOK.PUNCTUATOR, ']')
             elif self.match(TOK.PUNCTUATOR, '.'):
                 self.nextToken()
                 propName = self.parseIdentifierName()
@@ -191,12 +191,12 @@ class Parser:
 
     def parseNewExpression(self):
         newCount = [0]
-        while self.match(TOK.RESERVED,'new'):
+        while self.match(TOK.RESERVED, 'new'):
             newCount[0] += 1
             self.nextToken()
         result = self.parseMemberExpression(newCount)
         while newCount[0]:
-            result = AST.New(result,[])
+            result = AST.New(result, [])
             newCount[0] -= 1
         return result
 
@@ -213,14 +213,13 @@ class Parser:
         else:
             result = self.parsePrimaryExpression()
 
-
         while True:
             #todo:parse [] . ()
-            if self.match(TOK.PUNCTUATOR,'('):
+            if self.match(TOK.PUNCTUATOR, '('):
                 if not newCount[0]: return result
                 args = self.parseArguments()
                 newCount[0] -= 1
-                result = AST.New(result,args)
+                result = AST.New(result, args)
             else:
                 return result
 
@@ -348,33 +347,45 @@ class Parser:
                     founded = s
                 break
             if not founded:
-                properties.append(AST.ObjectGetSetProperty(key,getterBody,setterBody,paramName))
+                properties.append(AST.ObjectGetSetProperty(key, getterBody, setterBody, paramName))
         else:
             self.unexpected()
 
     def parseExpression(self):
         result = self.parseAssignmentExpression()
-        while self.match(TOK.PUNCTUATOR,','):
+        while self.match(TOK.PUNCTUATOR, ','):
             self.nextToken()
             result = AST.BinaryExpression(',', result, self.parseAssignmentExpression())
         return result
 
     def parseIdentifierName(self):
-        if self.matchList([TOK.ID,TOK.FUTURE_RESERVED,TOK.RESERVED]):
+        if self.matchList([TOK.ID, TOK.FUTURE_RESERVED, TOK.RESERVED]):
             return AST.Identifier(self.nextToken()[1])
         self.unexpected()
 
     def parsePostfixExpression(self):
         result = self.parseLeftHandSideExpression()
-        if not self.LTAhead() and self.matchList([(TOK.PUNCTUATOR, '++'),(TOK.PUNCTUATOR, '--')]):
+        if not self.LTAhead() and self.matchList([(TOK.PUNCTUATOR, '++'), (TOK.PUNCTUATOR, '--')]):
             next = self.nextToken()[1]
-            result = AST.PostfixExpression(result,next)
+            result = AST.PostfixExpression(result, next)
         return result
 
     def LTAhead(self):
         if self.LTLookup == None:
             self.lookup()
         return self.LTLookup
+
+    def parseUnaryExpression(self):
+        next = self.lookup()
+        if (next[0] == TOK.PUNCTUATOR
+            and (next[1] == '++' or next[1] == '--' or next[1] == '-' or next[1] == '+' or next[1] == '~' or next[1] == '!'))\
+        or (next[0] == TOK.RESERVED
+            and (next[1] == 'delete' or next[1] == 'typeof' or next[1] == 'void')):
+            next = self.nextToken()
+            return AST.UnaryExpression(self.parseUnaryExpression(), next[1])
+        else:
+            return self.parsePostfixExpression()
+
 
 
 

@@ -278,6 +278,49 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(parser.nextToken()[1],'++')
 
+    def test13UnaryExpression(self):
+        parser = Parser()
+        parser.src = 'a++ delete c void d typeof e\n ++f \n --g +h -i ~j !k'
+        parser.reset()
 
+        node = parser.parseUnaryExpression()
+        self.assertEqual(type(node), AST.PostfixExpression)
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(type(node), AST.UnaryExpression)
+        self.assertEqual(node.expr.name, 'c')
+        self.assertEqual(node.op, 'delete')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'd')
+        self.assertEqual(node.op, 'void')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'e')
+        self.assertEqual(node.op, 'typeof')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'f')
+        self.assertEqual(node.op, '++')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'g')
+        self.assertEqual(node.op, '--')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'h')
+        self.assertEqual(node.op, '+')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'i')
+        self.assertEqual(node.op, '-')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'j')
+        self.assertEqual(node.op, '~')
+
+        node = parser.parseUnaryExpression()
+        self.assertEqual(node.expr.name, 'k')
+        self.assertEqual(node.op, '!')
 
 
