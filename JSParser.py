@@ -35,6 +35,21 @@ Precedence = [
     ['*','/','%']
 ]
 
+AssignmentOperators = [
+    (TOK.PUNCTUATOR, '*='),
+    (TOK.PUNCTUATOR, '/='),
+    (TOK.PUNCTUATOR, '%='),
+    (TOK.PUNCTUATOR, '+='),
+    (TOK.PUNCTUATOR, '-='),
+    (TOK.PUNCTUATOR, '<<='),
+    (TOK.PUNCTUATOR, '>>='),
+    (TOK.PUNCTUATOR, '>>>='),
+    (TOK.PUNCTUATOR, '&='),
+    (TOK.PUNCTUATOR, '^='),
+    (TOK.PUNCTUATOR, '|=]'),
+    (TOK.PUNCTUATOR, '=')
+]
+
 class Parser:
     def __init__(self):
         self.state = 0
@@ -170,8 +185,11 @@ class Parser:
         return AST.VariableDeclaration(id, initializer)
 
     def parseAssignmentExpression(self, noIn):
-        #todo: unfinished!
-        return self.parseConditionalExpression(noIn)
+        result = self.parseConditionalExpression(noIn)
+        if self.matchList(AssignmentOperators):
+            op = self.nextToken()[1]
+            result = AST.AssignmentExpression(result,self.parseAssignmentExpression(noIn),op)
+        return result
 
     def parseLeftHandSideExpression(self, noIn):
         # LeftHandSideExpression ::

@@ -173,3 +173,13 @@ class ConditionalExpression(Node):
         self.expr.parent = self
         self.left.parent = self
         self.right.parent = self
+
+
+class AssignmentExpression(Node):
+    def __init__(self, left, right, op):
+        super().__init__()
+        self.left = left
+        self.right = right
+        self.op = op
+        self.left.parent = self
+        self.right.parent = self

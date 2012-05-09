@@ -377,10 +377,23 @@ class ParserTestCase(unittest.TestCase):
     def test15parseConditionalExpression(self):
         parser = Parser()
 
-        parser.src = '1+2 ? 4 : 5'
+        parser.src = '1+2 ? 4*2 : 5'
         parser.reset()
 
         node = parser.parseConditionalExpression(False)
         self.assertEqual(type(node), AST.ConditionalExpression)
+        self.assertEqual(node.expr.op, '+')
+        self.assertEqual(node.left.op, '*')
+        self.assertEqual(node.right.value, '5')
 
+    def test16parseAssignmentExpression(self):
+        parser = Parser()
 
+        parser.src = 'b[1]=33+=4'
+        parser.reset()
+
+        node = parser.parseAssignmentExpression(False)
+        self.assertEqual(type(node), AST.AssignmentExpression)
+        self.assertEqual(node.left.property.value, '1')
+        self.assertEqual(node.right.op, '+=')
+        self.assertEqual(node.right.right.value, '4')
