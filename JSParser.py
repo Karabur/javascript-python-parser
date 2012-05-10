@@ -28,11 +28,11 @@ Precedence = [
     ['|'],
     ['^'],
     ['&'],
-    ['==','!=','===','!==',],
-    ['<','>','<=','>=','instanceof','in'],
-    ['<<','>>','>>>'],
-    ['+','-'],
-    ['*','/','%']
+    ['==', '!=', '===', '!==', ],
+    ['<', '>', '<=', '>=', 'instanceof', 'in'],
+    ['<<', '>>', '>>>'],
+    ['+', '-'],
+    ['*', '/', '%']
 ]
 
 AssignmentOperators = [
@@ -58,7 +58,6 @@ class Parser:
 
     def lookup(self):
         if not self.lookupToken or self.LTLookup == None:
-
             self.lookupToken = self.lexer.getToken(False, True)
             if self.lookupToken[0] == TOK.LT:
                 self.LTLookup = True
@@ -67,7 +66,7 @@ class Parser:
                 self.LTLookup = False
         return self.lookupToken
 
-    def nextToken(self, REMode = False):
+    def nextToken(self, REMode=False):
         if self.lookupToken != None and not REMode:
             tok = self.lookupToken
             self.lookupToken = self.LTLookup = None
@@ -167,6 +166,9 @@ class Parser:
         if self.match(TOK.RESERVED, 'if'):
             return self.parseIfStatement()
 
+        if self.match(TOK.RESERVED, 'do'):
+            return self.parseDoWhileStatement()
+
         self.unexpected()
 
     def unexpected(self):
@@ -194,7 +196,7 @@ class Parser:
         result = self.parseConditionalExpression(noIn)
         if self.matchList(AssignmentOperators):
             op = self.nextToken()[1]
-            result = AST.AssignmentExpression(result,self.parseAssignmentExpression(noIn),op)
+            result = AST.AssignmentExpression(result, self.parseAssignmentExpression(noIn), op)
         return result
 
     def parseLeftHandSideExpression(self, noIn):
@@ -288,7 +290,7 @@ class Parser:
             self.expect(TOK.PUNCTUATOR, ')')
             return result
 
-        if self.match(TOK.DIV_PUNCTUATOR) :
+        if self.match(TOK.DIV_PUNCTUATOR):
             self.rewind()#reparse as a regexp
             return AST.Literal(self.nextToken(True)[1])
 
@@ -389,7 +391,7 @@ class Parser:
         result = self.parseAssignmentExpression(noIn)
         while self.match(TOK.PUNCTUATOR, ','):
             self.nextToken()
-            result = AST.BinaryExpression( result, self.parseAssignmentExpression(noIn), ',')
+            result = AST.BinaryExpression(result, self.parseAssignmentExpression(noIn), ',')
         return result
 
     def parseIdentifierName(self):
@@ -421,9 +423,9 @@ class Parser:
             return self.parsePostfixExpression()
 
     def parseBinaryExpression(self, noIn, precedence):
-        x= self.parseUnaryExpression()
+        x = self.parseUnaryExpression()
 
-        for i in reversed(range(precedence,self.Precedence(self.lookup(), noIn)+1)):
+        for i in reversed(range(precedence, self.Precedence(self.lookup(), noIn) + 1)):
             while self.Precedence(self.lookup(), noIn) == i:
                 op = self.nextToken()[1]
                 x = AST.BinaryExpression(x, self.parseBinaryExpression(noIn, i), op)
@@ -468,7 +470,17 @@ class Parser:
         else:
             elseStatement = AST.EmptyStatement()
 
-        return AST.If(condition, thenStatement, elseStatement)
+        return AST.IfStatement(condition, thenStatement, elseStatement)
+
+    def parseDoWhileStatement(self):
+        self.expect(TOK.RESERVED, 'do')
+        statement = self.parseStatement()
+        self.expect(TOK.RESERVED, 'while')
+        self.expect(TOK.PUNCTUATOR, '(')
+        condition = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ')')
+        return AST.DoWhileStatement(condition, statement)
+
 
 
 

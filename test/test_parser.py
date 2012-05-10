@@ -418,7 +418,7 @@ class ParserTestCase(unittest.TestCase):
         root = parser.buildAST()
 
         self.assertEqual(len(root.statements),1)
-        self.assertEqual(type(root.statements[0]), AST.If)
+        self.assertEqual(type(root.statements[0]), AST.IfStatement)
         self.assertEqual(root.statements[0].condition.value, '1')
         self.assertEqual(type(root.statements[0].thenStatement), AST.EmptyStatement)
         self.assertEqual(type(root.statements[0].elseStatement), AST.VariableStatement)
@@ -428,7 +428,7 @@ class ParserTestCase(unittest.TestCase):
         root = parser.buildAST()
 
         self.assertEqual(len(root.statements),1)
-        self.assertEqual(type(root.statements[0]), AST.If)
+        self.assertEqual(type(root.statements[0]), AST.IfStatement)
         self.assertEqual(type(root.statements[0].condition), AST.BinaryExpression)
         self.assertEqual(root.statements[0].condition.op, '==')
         self.assertEqual(type(root.statements[0].thenStatement), AST.Block)
@@ -438,7 +438,20 @@ class ParserTestCase(unittest.TestCase):
 
         node = parser.buildAST().statements[0]
 
-        self.assertEqual(type(node.thenStatement), AST.If)
+        self.assertEqual(type(node.thenStatement), AST.IfStatement)
         self.assertEqual(len(node.elseStatement.statements), 3)
         self.assertEqual(len(node.thenStatement.thenStatement.statements), 1)
         self.assertEqual(len(node.thenStatement.elseStatement.statements), 2)
+
+    def test19IterationStatement(self):
+        parser = Parser()
+        parser.src = 'do do ; while (1===1) while (a!=1+2)'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.DoWhileStatement)
+        self.assertEqual(type(node.statement), AST.DoWhileStatement)
+        self.assertEqual(type(node.condition), AST.BinaryExpression)
+        self.assertEqual(node.condition.op, '!=')
+        self.assertEqual(node.statement.condition.op, '===')
+        self.assertEqual(type(node.statement.statement), AST.EmptyStatement)

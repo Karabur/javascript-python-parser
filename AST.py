@@ -190,7 +190,7 @@ class EmptyStatement(Node):
         super().__init__()
 
 
-class If(Node):
+class IfStatement(Node):
     def __init__(self, condition, thenStatement, elseStatement):
         super().__init__()
         self.condition = condition
@@ -201,3 +201,11 @@ class If(Node):
         self.thenStatement.parent = self
         self.elseStatement.parent = self
 
+
+class DoWhileStatement(Node):
+    def __init__(self, condition, statement):
+        super().__init__()
+        self.condition = condition
+        self.statement = statement
+        self.condition.parent = self
+        self.statement.parent = self
