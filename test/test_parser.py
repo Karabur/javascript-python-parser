@@ -445,7 +445,7 @@ class ParserTestCase(unittest.TestCase):
 
     def test19IterationStatement(self):
         parser = Parser()
-        parser.src = 'do do ; while (1===1) while (a!=1+2)'
+        parser.src = 'do do ; while (1===1); while (a!=1+2);'
 
         node = parser.buildAST().statements[0]
 

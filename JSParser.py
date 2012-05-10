@@ -479,6 +479,7 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, '(')
         condition = self.parseExpression(False)
         self.expect(TOK.PUNCTUATOR, ')')
+        self.expect(TOK.PUNCTUATOR, ';')
         return AST.DoWhileStatement(condition, statement)
 
 
