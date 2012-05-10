@@ -410,11 +410,26 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(parser.ASTRoot.statements[0]),AST.EmptyStatement)
         self.assertEqual(type(parser.ASTRoot.statements[1]),AST.EmptyStatement)
 
-#    def test18parseIfStatement(self):
-#        parser = Parser()
-#
-#        parser.src = ';;'
-#
-#        parser.buildAST()
-#
-#        self.assertEqual(len(parser.ASTRoot.statements),2)
+    def test18parseIfStatement(self):
+        parser = Parser()
+
+        parser.src = 'if (1) ; else var a=1;'
+
+        root = parser.buildAST()
+
+        self.assertEqual(len(root.statements),1)
+        self.assertEqual(type(root.statements[0]), AST.If)
+        self.assertEqual(root.statements[0].condition.value, '1')
+        self.assertEqual(type(root.statements[0].thenStatement), AST.EmptyStatement)
+        self.assertEqual(type(root.statements[0].elseStatement), AST.VariableStatement)
+
+        parser.src = 'if (x==1) {}'
+
+        root = parser.buildAST()
+
+        self.assertEqual(len(root.statements),1)
+        self.assertEqual(type(root.statements[0]), AST.If)
+        self.assertEqual(type(root.statements[0].condition), AST.BinaryExpression)
+        self.assertEqual(root.statements[0].condition.op, '==')
+        self.assertEqual(type(root.statements[0].thenStatement), AST.Block)
+        self.assertEqual(type(root.statements[0].elseStatement), AST.EmptyStatement)

@@ -188,3 +188,16 @@ class AssignmentExpression(Node):
 class EmptyStatement(Node):
     def __init__(self):
         super().__init__()
+
+
+class If(Node):
+    def __init__(self, condition, thenStatement, elseStatement):
+        super().__init__()
+        self.condition = condition
+        self.thenStatement = thenStatement
+        self.elseStatement = elseStatement
+
+        self.condition.parent = self
+        self.thenStatement.parent = self
+        self.elseStatement.parent = self
+

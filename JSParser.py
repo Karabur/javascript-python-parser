@@ -164,8 +164,8 @@ class Parser:
         if self.match(TOK.PUNCTUATOR, ';'):
             self.nextToken()
             return AST.EmptyStatement()
-
-
+        if self.match(TOK.RESERVED, 'if'):
+            return self.parseIfStatement()
 
         self.unexpected()
 
@@ -455,6 +455,20 @@ class Parser:
             result = AST.ConditionalExpression(result, left, right)
 
         return result
+
+    def parseIfStatement(self):
+        self.expect(TOK.RESERVED, 'if')
+        self.expect(TOK.PUNCTUATOR, '(')
+        condition = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ')')
+        thenStatement = self.parseStatement()
+        if self.match(TOK.RESERVED, 'else'):
+            self.nextToken()
+            elseStatement = self.parseStatement()
+        else:
+            elseStatement = AST.EmptyStatement()
+
+        return AST.If(condition, thenStatement, elseStatement)
 
 
 
