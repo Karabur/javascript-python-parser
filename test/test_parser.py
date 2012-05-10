@@ -433,3 +433,12 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(root.statements[0].condition.op, '==')
         self.assertEqual(type(root.statements[0].thenStatement), AST.Block)
         self.assertEqual(type(root.statements[0].elseStatement), AST.EmptyStatement)
+
+        parser.src = 'if (x==1) if (y==2) {;} else {;;} else {;;;}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node.thenStatement), AST.If)
+        self.assertEqual(len(node.elseStatement.statements), 3)
+        self.assertEqual(len(node.thenStatement.thenStatement.statements), 1)
+        self.assertEqual(len(node.thenStatement.elseStatement.statements), 2)
