@@ -82,12 +82,14 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.VariableStatement)
         self.assertEqual(node.declarations[0].name,'x')
 
-        parser.src = 'var x=1;'
+        parser.src = 'var x=1,b;'
         parser.buildAST()
         node = parser.ASTRoot.statements[0]
         self.assertEqual(type(node), AST.VariableStatement)
         self.assertEqual(node.declarations[0].initializer.value,'1')
         self.assertEqual(node.declarations[0].name,'x')
+        self.assertEqual(node.declarations[1].name,'b')
+        self.assertEqual(node.declarations[1].initializer,None)
 
     def test08ParseLeftHandSideExpression(self):
         parser = Parser()
@@ -477,3 +479,15 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node.next), AST.Call)
         self.assertEqual(node.next.expr.name, 'a')
 
+        parser.src = 'for (var b=1,c=2;a<12;a()) {}'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node.init), AST.Block)
+        self.assertEqual(len(node.init.statements), 2)
+        self.assertEqual(type(node.init.statements[0]), AST.VariableDeclaration)
+
+        parser.src = 'for (var b=1;a<12;a()) {}'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node.init), AST.VariableDeclaration)
+        self.assertEqual(node.init.name, 'b')

@@ -181,9 +181,8 @@ class Parser:
     def parseVariableStatement(self):
         declarations = []
         self.expect(TOK.RESERVED, 'var')
-        declarations.append(self.parseVariableDeclaration(False))
-        while self.match(TOK.PUNCTUATOR, ','):
-            declarations.append(self.parseVariableDeclaration(False))
+        declarations = self.parseVariableDeclarationsList(False)
+        if type(declarations) != list: declarations = [declarations]
         self.expect(TOK.PUNCTUATOR, ';')
         return AST.VariableStatement(declarations)
 
@@ -499,7 +498,9 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, '(')
         if not self.match(TOK.PUNCTUATOR, ';'):
             if self.match(TOK.RESERVED, 'var'):
-                pass
+                self.nextToken()
+                init = self.parseVariableDeclarationsList(True)
+                if type(init) == list: init = AST.Block(init)
             else:
             #we parse both LeftHandSideExpression and ExpressionNoIn as an ExpressionNoIn
             #because ExpressionNoIn produces LHSE
@@ -524,6 +525,14 @@ class Parser:
         statement = self.parseStatement()
 
         return AST.ForStatement(init,condition, next, statement)
+
+    def parseVariableDeclarationsList(self, noIn):
+        declarations = [self.parseVariableDeclaration(noIn)]
+        while self.match(TOK.PUNCTUATOR, ','):
+            self.nextToken()
+            declarations.append(self.parseVariableDeclaration(noIn))
+        if len(declarations) == 1: return declarations[0]
+        return declarations
 
 
 
