@@ -455,3 +455,25 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.condition.op, '!=')
         self.assertEqual(node.statement.condition.op, '===')
         self.assertEqual(type(node.statement.statement), AST.EmptyStatement)
+
+        parser.src = 'while (0) {}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.WhileStatement)
+        self.assertEqual(type(node.statement), AST.Block)
+        self.assertEqual(node.condition.value, '0')
+
+        parser.src = 'for (a=1;a<12;a()) {}'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ForStatement)
+        self.assertEqual(type(node.statement), AST.Block)
+        self.assertEqual(type(node.init), AST.AssignmentExpression)
+        self.assertEqual(node.init.left.name, 'a')
+        self.assertEqual(type(node.condition), AST.BinaryExpression)
+        self.assertEqual(node.condition.op, '<')
+
+        self.assertEqual(type(node.next), AST.Call)
+        self.assertEqual(node.next.expr.name, 'a')
+

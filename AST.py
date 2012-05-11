@@ -209,3 +209,22 @@ class DoWhileStatement(Node):
         self.statement = statement
         self.condition.parent = self
         self.statement.parent = self
+
+
+class WhileStatement(Node):
+    def __init__(self, condition, statement):
+        super().__init__()
+        self.condition = condition
+        self.statement = statement
+        self.condition.parent = self
+        self.statement.parent = self
+
+
+class ForStatement(Node):
+    def __init__(self, init, condition, next, statement):
+        super().__init__()
+        self.init = init
+        self.condition = condition
+        self.next = next
+        self.statement = statement
+        self.init.parent = self.condition.parent = self.next.parent = self.statement.parent = self

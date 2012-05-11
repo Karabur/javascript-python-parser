@@ -165,9 +165,12 @@ class Parser:
             return AST.EmptyStatement()
         if self.match(TOK.RESERVED, 'if'):
             return self.parseIfStatement()
-
         if self.match(TOK.RESERVED, 'do'):
             return self.parseDoWhileStatement()
+        if self.match(TOK.RESERVED, 'while'):
+            return self.parseWhileStatement()
+        if self.match(TOK.RESERVED, 'for'):
+            return self.parseForStatement()
 
         self.unexpected()
 
@@ -481,6 +484,50 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, ')')
         self.expect(TOK.PUNCTUATOR, ';')
         return AST.DoWhileStatement(condition, statement)
+
+    def parseWhileStatement(self):
+        self.expect(TOK.RESERVED, 'while')
+        self.expect(TOK.PUNCTUATOR, '(')
+        condition = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ')')
+        statement = self.parseStatement()
+        return AST.WhileStatement(condition, statement)
+
+    def parseForStatement(self):
+        condition = next = None
+        self.expect(TOK.RESERVED, 'for')
+        self.expect(TOK.PUNCTUATOR, '(')
+        if not self.match(TOK.PUNCTUATOR, ';'):
+            if self.match(TOK.RESERVED, 'var'):
+                pass
+            else:
+            #we parse both LeftHandSideExpression and ExpressionNoIn as an ExpressionNoIn
+            #because ExpressionNoIn produces LHSE
+            #additional checks may be done after that for valid LHSE if next token is 'in'
+                init = self.parseExpression(True)
+            if self.match(TOK.RESERVED, 'in'):
+                #parse forin
+                pass
+        else:
+            init = AST.EmptyStatement
+        self.expect(TOK.PUNCTUATOR, ';')
+        if not self.match(TOK.PUNCTUATOR, ';'):
+            condition = self.parseExpression(False)
+        else:
+            condition = AST.EmptyStatement
+        self.expect(TOK.PUNCTUATOR, ';')
+        if not self.match(TOK.PUNCTUATOR, ')'):
+            next = self.parseExpression(False)
+        else:
+            next = AST.EmptyStatement
+        self.expect(TOK.PUNCTUATOR, ')')
+        statement = self.parseStatement()
+
+        return AST.ForStatement(init,condition, next, statement)
+
+
+
+
 
 
 
