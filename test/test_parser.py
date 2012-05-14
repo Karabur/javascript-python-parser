@@ -491,3 +491,17 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(type(node.init), AST.VariableDeclaration)
         self.assertEqual(node.init.name, 'b')
+
+        parser.src = 'for (var f in asdd) {}'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ForInStatement)
+        self.assertEqual(node.each.name, 'f')
+        self.assertEqual(node.enumerable.name, 'asdd')
+
+        parser.src = 'for (x in dsdd) {}'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ForInStatement)
+        self.assertEqual(node.each.name, 'x')
+        self.assertEqual(node.enumerable.name, 'dsdd')

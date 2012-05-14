@@ -228,3 +228,12 @@ class ForStatement(Node):
         self.next = next
         self.statement = statement
         self.init.parent = self.condition.parent = self.next.parent = self.statement.parent = self
+
+
+class ForInStatement(Node):
+    def __init__(self, each, enumerable, body):
+        super().__init__()
+        self.each = each
+        self.enumerable = enumerable
+        self.body = body
+        each.parent = enumerable.parent = body.parent = self

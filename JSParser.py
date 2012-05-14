@@ -500,6 +500,14 @@ class Parser:
             if self.match(TOK.RESERVED, 'var'):
                 self.nextToken()
                 init = self.parseVariableDeclarationsList(True)
+                if self.match(TOK.RESERVED, 'in'):
+                    if type(init) == list:
+                        self.error('Must be only one variable declaration in for..in statement')
+                    self.nextToken()
+                    enum = self.parseExpression(False)
+                    self.expect(TOK.PUNCTUATOR, ')')
+                    body = self.parseStatement()
+                    return AST.ForInStatement(init, enum,body)
                 if type(init) == list: init = AST.Block(init)
             else:
             #we parse both LeftHandSideExpression and ExpressionNoIn as an ExpressionNoIn
@@ -507,8 +515,11 @@ class Parser:
             #additional checks may be done after that for valid LHSE if next token is 'in'
                 init = self.parseExpression(True)
             if self.match(TOK.RESERVED, 'in'):
-                #parse forin
-                pass
+                self.nextToken()
+                enum = self.parseExpression(False)
+                self.expect(TOK.PUNCTUATOR, ')')
+                body = self.parseStatement()
+                return AST.ForInStatement(init, enum,body)
         else:
             init = AST.EmptyStatement
         self.expect(TOK.PUNCTUATOR, ';')
