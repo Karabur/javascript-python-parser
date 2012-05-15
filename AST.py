@@ -237,3 +237,10 @@ class ForInStatement(Node):
         self.enumerable = enumerable
         self.body = body
         each.parent = enumerable.parent = body.parent = self
+
+
+class ContinueStatement(Node):
+    def __init__(self, label):
+        super().__init__()
+        self.label = label
+        if self.label != None: self.label.parent = self

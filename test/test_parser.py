@@ -505,3 +505,26 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.ForInStatement)
         self.assertEqual(node.each.name, 'x')
         self.assertEqual(node.enumerable.name, 'dsdd')
+
+    def test20ContinueStatement(self):
+        parser = Parser()
+        parser.src = 'continue;'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ContinueStatement)
+
+        #ASI testing
+        parser.src = 'continue\ncontinue'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements), 2)
+        self.assertEqual(type(statements[0]), AST.ContinueStatement)
+        self.assertEqual(type(statements[1]), AST.ContinueStatement)
+
+        #ASI testing
+        parser.src = 'continue asd\ncontinue ddd;'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements),2)
+        self.assertEqual(statements[0].label.name,'asd')
+        self.assertEqual(statements[1].label.name,'ddd')

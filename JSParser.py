@@ -171,6 +171,8 @@ class Parser:
             return self.parseWhileStatement()
         if self.match(TOK.RESERVED, 'for'):
             return self.parseForStatement()
+        if self.match(TOK.RESERVED, 'continue'):
+            return self.parseContinueStatement()
 
         self.unexpected()
 
@@ -544,6 +546,17 @@ class Parser:
             declarations.append(self.parseVariableDeclaration(noIn))
         if len(declarations) == 1: return declarations[0]
         return declarations
+
+    def parseContinueStatement(self):
+        self.expect(TOK.RESERVED, 'continue')
+        label = None
+        if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
+            return AST.ContinueStatement(label)
+        label = AST.Identifier(self.expect(TOK.ID)[1])
+        if not self.LTAhead() and not self.match(TOK.EOF):
+            self.expect(TOK.PUNCTUATOR,';')
+        return AST.ContinueStatement(label)
+
 
 
 
