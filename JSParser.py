@@ -173,6 +173,10 @@ class Parser:
             return self.parseForStatement()
         if self.match(TOK.RESERVED, 'continue'):
             return self.parseContinueStatement()
+        if self.match(TOK.RESERVED, 'break'):
+            return self.parseBreakStatement()
+        if self.match(TOK.RESERVED, 'return'):
+            return self.parseReturnStatement()
 
         self.unexpected()
 
@@ -556,6 +560,27 @@ class Parser:
         if not self.LTAhead() and not self.match(TOK.EOF):
             self.expect(TOK.PUNCTUATOR,';')
         return AST.ContinueStatement(label)
+
+    def parseBreakStatement(self):
+        self.expect(TOK.RESERVED, 'break')
+        label = None
+        if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
+            return AST.BreakStatement(label)
+        label = AST.Identifier(self.expect(TOK.ID)[1])
+        if not self.LTAhead() and not self.match(TOK.EOF):
+            self.expect(TOK.PUNCTUATOR,';')
+        return AST.BreakStatement(label)
+
+    def parseReturnStatement(self):
+        self.expect(TOK.RESERVED, 'return')
+        result = None
+        if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
+            return AST.ReturnStatement(result)
+        result = self.parseExpression(False)
+        if not self.LTAhead() and not self.match(TOK.EOF):
+            self.expect(TOK.PUNCTUATOR,';')
+        return AST.ReturnStatement(result)
+
 
 
 

@@ -527,4 +527,50 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(len(statements),2)
         self.assertEqual(statements[0].label.name,'asd')
+        self.assertEqual(statements[1].label.name,'ddd') 
+
+    def test21BreakStatement(self):
+        parser = Parser()
+        parser.src = 'break;'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.BreakStatement)
+
+        #ASI testing
+        parser.src = 'break\nbreak'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements), 2)
+        self.assertEqual(type(statements[0]), AST.BreakStatement)
+        self.assertEqual(type(statements[1]), AST.BreakStatement)
+
+        #ASI testing
+        parser.src = 'break asd\nbreak ddd;'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements),2)
+        self.assertEqual(statements[0].label.name,'asd')
         self.assertEqual(statements[1].label.name,'ddd')
+
+    def test22ReturnStatement(self):
+        parser = Parser()
+        parser.src = 'return;'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ReturnStatement)
+
+        #ASI testing
+        parser.src = 'return\nreturn'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements), 2)
+        self.assertEqual(type(statements[0]), AST.ReturnStatement)
+        self.assertEqual(type(statements[1]), AST.ReturnStatement)
+
+        #ASI testing
+        parser.src = 'return 22+1\nreturn asd=3;'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements),2)
+        self.assertEqual(statements[0].result.op,'+')
+        self.assertEqual(statements[1].result.left.name,'asd')

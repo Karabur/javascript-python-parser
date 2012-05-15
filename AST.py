@@ -244,3 +244,15 @@ class ContinueStatement(Node):
         super().__init__()
         self.label = label
         if self.label != None: self.label.parent = self
+
+class BreakStatement(Node):
+    def __init__(self, label):
+        super().__init__()
+        self.label = label
+        if self.label != None: self.label.parent = self
+
+class ReturnStatement(Node):
+    def __init__(self, result):
+        super().__init__()
+        self.result = result
+        if self.result != None: self.result.parent = self
