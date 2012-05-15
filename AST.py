@@ -256,3 +256,11 @@ class ReturnStatement(Node):
         super().__init__()
         self.result = result
         if self.result != None: self.result.parent = self
+
+
+class WithStatement(Node):
+    def __init__(self, expr, statement):
+        super().__init__()
+        self.expr = expr
+        self.statement = statement
+        self.expr.parent = self.statement.parent = self

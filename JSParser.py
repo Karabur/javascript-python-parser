@@ -177,6 +177,8 @@ class Parser:
             return self.parseBreakStatement()
         if self.match(TOK.RESERVED, 'return'):
             return self.parseReturnStatement()
+        if self.match(TOK.RESERVED, 'with'):
+            return self.parseWithStatement()
 
         self.unexpected()
 
@@ -580,6 +582,17 @@ class Parser:
         if not self.LTAhead() and not self.match(TOK.EOF):
             self.expect(TOK.PUNCTUATOR,';')
         return AST.ReturnStatement(result)
+
+    def parseWithStatement(self):
+        self.expect(TOK.RESERVED, 'with')
+        self.expect(TOK.PUNCTUATOR, '(')
+        expr = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ')')
+        stmt = self.parseStatement()
+        return AST.WithStatement(expr, stmt)
+
+
+
 
 
 

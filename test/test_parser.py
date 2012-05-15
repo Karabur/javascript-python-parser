@@ -574,3 +574,13 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(len(statements),2)
         self.assertEqual(statements[0].result.op,'+')
         self.assertEqual(statements[1].result.left.name,'asd')
+
+    def test23WithStatement(self):
+        parser = Parser()
+        parser.src = 'with (dd) {}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.WithStatement)
+        self.assertEqual(node.expr.name,'dd')
+        self.assertEqual(type(node.statement),AST.Block)
