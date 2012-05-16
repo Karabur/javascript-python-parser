@@ -179,6 +179,8 @@ class Parser:
             return self.parseReturnStatement()
         if self.match(TOK.RESERVED, 'with'):
             return self.parseWithStatement()
+        if self.match(TOK.RESERVED, 'switch'):
+            return self.parseSwitchStatement()
 
         self.unexpected()
 
@@ -275,10 +277,13 @@ class Parser:
             return AST.This()
 
         if self.match(TOK.BOOL):
-            return AST.Literal(self.nextToken())
+            return AST.BoolLiteral(self.nextToken()[1])
+
+        if self.match(TOK.STRING):
+            return AST.Literal(self.nextToken()[1])
 
         if self.match(TOK.NULL):
-            return AST.Literal(self.nextToken())
+            return AST.NullLiteral(self.nextToken()[1])
 
         if self.match(TOK.ID):
             token = self.nextToken()
@@ -286,7 +291,7 @@ class Parser:
 
         if self.match(TOK.NUMERIC):
             token = self.nextToken()
-            return AST.Number(token[1])
+            return AST.NumericLiteral(token[1])
 
         if self.match(TOK.PUNCTUATOR, '['):
             return self.parseArrayLiteral()
@@ -302,7 +307,7 @@ class Parser:
 
         if self.match(TOK.DIV_PUNCTUATOR):
             self.rewind()#reparse as a regexp
-            return AST.Literal(self.nextToken(True)[1])
+            return AST.RegExpLiteral(self.nextToken(True)[1])
 
         self.unexpected()
 
@@ -515,7 +520,7 @@ class Parser:
                     enum = self.parseExpression(False)
                     self.expect(TOK.PUNCTUATOR, ')')
                     body = self.parseStatement()
-                    return AST.ForInStatement(init, enum,body)
+                    return AST.ForInStatement(init, enum, body)
                 if type(init) == list: init = AST.Block(init)
             else:
             #we parse both LeftHandSideExpression and ExpressionNoIn as an ExpressionNoIn
@@ -527,7 +532,7 @@ class Parser:
                 enum = self.parseExpression(False)
                 self.expect(TOK.PUNCTUATOR, ')')
                 body = self.parseStatement()
-                return AST.ForInStatement(init, enum,body)
+                return AST.ForInStatement(init, enum, body)
         else:
             init = AST.EmptyStatement
         self.expect(TOK.PUNCTUATOR, ';')
@@ -543,7 +548,7 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, ')')
         statement = self.parseStatement()
 
-        return AST.ForStatement(init,condition, next, statement)
+        return AST.ForStatement(init, condition, next, statement)
 
     def parseVariableDeclarationsList(self, noIn):
         declarations = [self.parseVariableDeclaration(noIn)]
@@ -560,7 +565,7 @@ class Parser:
             return AST.ContinueStatement(label)
         label = AST.Identifier(self.expect(TOK.ID)[1])
         if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR,';')
+            self.expect(TOK.PUNCTUATOR, ';')
         return AST.ContinueStatement(label)
 
     def parseBreakStatement(self):
@@ -570,7 +575,7 @@ class Parser:
             return AST.BreakStatement(label)
         label = AST.Identifier(self.expect(TOK.ID)[1])
         if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR,';')
+            self.expect(TOK.PUNCTUATOR, ';')
         return AST.BreakStatement(label)
 
     def parseReturnStatement(self):
@@ -580,7 +585,7 @@ class Parser:
             return AST.ReturnStatement(result)
         result = self.parseExpression(False)
         if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR,';')
+            self.expect(TOK.PUNCTUATOR, ';')
         return AST.ReturnStatement(result)
 
     def parseWithStatement(self):
@@ -590,6 +595,35 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, ')')
         stmt = self.parseStatement()
         return AST.WithStatement(expr, stmt)
+
+    def parseSwitchStatement(self):
+        self.expect(TOK.RESERVED, 'switch')
+        self.expect(TOK.PUNCTUATOR, '(')
+        expr = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ')')
+        self.expect(TOK.PUNCTUATOR,'{')
+        cases = []
+        default = [False]
+        while not self.match(TOK.PUNCTUATOR,'}'):
+            cases.append(self.parseCaseClause(default))
+        self.expect(TOK.PUNCTUATOR,'}')
+        return AST.SwitchStatement(expr, cases)
+
+    def parseCaseClause(self, default):
+        label = None
+        if self.match(TOK.RESERVED, 'default'):
+            if default[0]: self.error('Multiple default cases not allowed')
+            default[0] = True
+            self.nextToken()
+        else:
+            self.expect(TOK.RESERVED,'case')
+            label = self.parseExpression(False)
+        self.expect(TOK.PUNCTUATOR, ':')
+        statements = []
+        while not self.match(TOK.RESERVED,'case') and not self.match(TOK.RESERVED,'default') and not self.match(TOK.PUNCTUATOR,'}'):
+            statements.append(self.parseStatement())
+        return AST.CaseCause(label, statements)
+
 
 
 

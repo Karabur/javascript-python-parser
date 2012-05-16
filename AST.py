@@ -61,11 +61,6 @@ class Call(Node):
         for a in self.args: a.parent = self
 
 
-class Number(Node):
-    def __init__(self, value):
-        #TODO: parse numbers correctly
-        super().__init__()
-        self.value = value
 
 
 class Array(Node):
@@ -125,6 +120,26 @@ class BinaryExpression(Node):
 
 
 class Literal(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+class NullLiteral(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+class BoolLiteral(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+class NumericLiteral(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+class RegExpLiteral(Node):
     def __init__(self, value):
         super().__init__()
         self.value = value
@@ -264,3 +279,23 @@ class WithStatement(Node):
         self.expr = expr
         self.statement = statement
         self.expr.parent = self.statement.parent = self
+
+
+#cases listed in same order as in source
+#default case has no label
+class SwitchStatement(Node):
+    def __init__(self, expr, cases):
+        super().__init__()
+        self.expr = expr
+        self.cases = cases
+        self.expr.parent = self
+        for c in self.cases: c.parent = self
+
+
+class CaseCause(Node):
+    def __init__(self, label, statements):
+        super().__init__()
+        self.label = label
+        self.statements = statements
+        if self.label != None : self.label.parent = self
+        for s in self.statements: s.parent = self

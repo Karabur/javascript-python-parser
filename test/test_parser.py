@@ -100,7 +100,7 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.name, 'a')
 
         node = parser.parseLeftHandSideExpression(False)
-        self.assertEqual(type(node), AST.Number)
+        self.assertEqual(type(node), AST.NumericLiteral)
         self.assertEqual(node.value, '1')
 
         parser.src = 'a[1] asd[b]'
@@ -140,11 +140,11 @@ class ParserTestCase(unittest.TestCase):
 
         node = parser.parseLeftHandSideExpression(False)
         self.assertEqual(len(node.expr.args), 1)
-        self.assertEqual(type(node.expr.args[0]), AST.Number)
+        self.assertEqual(type(node.expr.args[0]), AST.NumericLiteral)
         self.assertEqual(node.expr.args[0].value, '1')
 
         self.assertEqual(len(node.args), 2)
-        self.assertEqual(type(node.args[0]), AST.Number)
+        self.assertEqual(type(node.args[0]), AST.NumericLiteral)
         self.assertEqual(type(node.args[1]), AST.Identifier)
         self.assertEqual(node.args[0].value, '2')
         self.assertEqual(node.args[1].name, 'a')
@@ -170,7 +170,7 @@ class ParserTestCase(unittest.TestCase):
 
     def test10PrimaryExpression(self):
         parser = Parser()
-        parser.src = 'this asd false true null /asd/i [] [1,a,,3]'
+        parser.src = 'this asd false true null "dd" 56.7e34 /asd/i [] [1,a,,3]'
         parser.reset()
 
         node = parser.parsePrimaryExpression()
@@ -180,14 +180,22 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.Identifier)
 
         node = parser.parsePrimaryExpression()
-        self.assertEqual(type(node), AST.Literal)
+        self.assertEqual(type(node), AST.BoolLiteral)
+        self.assertEqual(node.value, 'false')
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.BoolLiteral)
+        self.assertEqual(node.value, 'true')
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.NullLiteral)
+        self.assertEqual(node.value, 'null')
         node = parser.parsePrimaryExpression()
         self.assertEqual(type(node), AST.Literal)
+        self.assertEqual(node.value, 'dd')
         node = parser.parsePrimaryExpression()
-        self.assertEqual(type(node), AST.Literal)
-
+        self.assertEqual(type(node), AST.NumericLiteral)
+        self.assertEqual(node.value, '56.7e34')
         node = parser.parsePrimaryExpression()
-        self.assertEqual(type(node), AST.Literal)
+        self.assertEqual(type(node), AST.RegExpLiteral)
         self.assertEqual(node.value, '/asd/i')
 
         node = parser.parsePrimaryExpression()
@@ -584,3 +592,25 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node), AST.WithStatement)
         self.assertEqual(node.expr.name,'dd')
         self.assertEqual(type(node.statement),AST.Block)
+
+    def test24SwitchStatement(self):
+        parser = Parser()
+        parser.src = 'switch (a) {\
+        case "aa": {};\n\
+                    ;\n\
+        default: ;\
+        }'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.SwitchStatement)
+        self.assertEqual(node.expr.name, 'a')
+        self.assertEqual(len(node.cases), 2)
+        self.assertEqual(node.cases[0].label.value, 'aa')
+        self.assertEqual(len(node.cases[0].statements), 3)
+        self.assertEqual(type(node.cases[0].statements[0]), AST.Block)
+        self.assertEqual(type(node.cases[0].statements[1]), AST.EmptyStatement)
+
+        self.assertEqual(node.cases[1].label, None)
+        self.assertEqual(len(node.cases[1].statements), 1)
+        self.assertEqual(type(node.cases[1].statements[0]), AST.EmptyStatement)
