@@ -185,6 +185,10 @@ class Parser:
             return self.parseThrowStatement()
         if self.match(TOK.RESERVED, 'try'):
             return self.parseTryStatement()
+        if self.match(TOK.RESERVED, 'debugger'):
+            self.nextToken()
+            self.expectSemicolon()
+            return AST.DebuggerStatement()
 
         self.unexpected()
 

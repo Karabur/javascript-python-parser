@@ -333,3 +333,8 @@ class FinallyClause(Node):
         super().__init__()
         self.block = block
         self.block.parent = self
+
+
+class DebuggerStatement(Node):
+    def __init__(self):
+        super().__init__()
