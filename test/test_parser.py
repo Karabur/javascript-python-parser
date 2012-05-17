@@ -636,3 +636,21 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(len(statements),2)
         self.assertEqual(statements[0].statements[0].exception.op,'+')
         self.assertEqual(statements[1].exception.left.name,'asd')
+
+    def test26TryStatement(self):
+        parser = Parser()
+        parser.src = 'try { ; } catch (ff) {}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.TryStatement)
+        self.assertEqual(len(node.block.statements), 1)
+        self.assertEqual(node.catchClause.id.name, 'ff')
+        self.assertEqual(len(node.catchClause.block.statements), 0)
+
+        parser.src = 'try { ; } finally {try {} catch (d) {} finally {}}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(node.catchClause, None)
+        self.assertEqual(type(node.finClause.block.statements[0]), AST.TryStatement)

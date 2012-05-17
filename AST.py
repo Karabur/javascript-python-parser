@@ -306,3 +306,30 @@ class ThrowStatement(Node):
         super().__init__()
         self.exception = exception
         self.exception.parent = self
+
+
+class TryStatement(Node):
+    def __init__(self, block, catchClause, finClause):
+        super().__init__()
+        self.block = block
+        self.catchClause = catchClause
+        self.finClause = finClause
+
+        if self.catchClause!= None: self.catchClause.parent = self
+        if self.finClause!= None: self.finClause.parent = self
+        self.block.parent = self
+
+
+class CatchClause(Node):
+    def __init__(self, id, block):
+        super().__init__()
+        self.id = id
+        self.block = block
+
+        self.id.parent = self.block.parent = self
+
+class FinallyClause(Node):
+    def __init__(self, block):
+        super().__init__()
+        self.block = block
+        self.block.parent = self

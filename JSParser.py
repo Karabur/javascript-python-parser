@@ -183,6 +183,8 @@ class Parser:
             return self.parseSwitchStatement()
         if self.match(TOK.RESERVED, 'throw'):
             return self.parseThrowStatement()
+        if self.match(TOK.RESERVED, 'try'):
+            return self.parseTryStatement()
 
         self.unexpected()
 
@@ -638,6 +640,33 @@ class Parser:
         exception = self.parseExpression(False)
         self.expectSemicolon()
         return AST.ThrowStatement(exception)
+
+    def parseTryStatement(self):
+        self.expect(TOK.RESERVED, 'try')
+        block = self.parseBlock()
+        catchBlock = finBlock = None
+        if self.match(TOK.RESERVED,'catch'):
+            catchBlock = self.parseCatchClause()
+        if self.match(TOK.RESERVED,'finally'):
+            finBlock = self.parseFinallyClause()
+
+        if catchBlock == None and finBlock == None:
+            self.error('try statement must have catch or finally clause')
+
+        return AST.TryStatement(block, catchBlock, finBlock)
+
+    def parseCatchClause(self):
+        self.expect(TOK.RESERVED, 'catch')
+        self.expect(TOK.PUNCTUATOR, '(')
+        id = AST.Identifier(self.expect(TOK.ID)[1])
+        self.expect(TOK.PUNCTUATOR, ')')
+        block = self.parseBlock()
+        return AST.CatchClause(id,block)
+
+    def parseFinallyClause(self):
+        self.expect(TOK.RESERVED, 'finally')
+        block = self.parseBlock()
+        return AST.FinallyClause(block)
 
 
 
