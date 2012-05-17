@@ -181,6 +181,8 @@ class Parser:
             return self.parseWithStatement()
         if self.match(TOK.RESERVED, 'switch'):
             return self.parseSwitchStatement()
+        if self.match(TOK.RESERVED, 'throw'):
+            return self.parseThrowStatement()
 
         self.unexpected()
 
@@ -193,7 +195,7 @@ class Parser:
         self.expect(TOK.RESERVED, 'var')
         declarations = self.parseVariableDeclarationsList(False)
         if type(declarations) != list: declarations = [declarations]
-        self.expect(TOK.PUNCTUATOR, ';')
+        self.expectSemicolon()
         return AST.VariableStatement(declarations)
 
     def parseVariableDeclaration(self, noIn):
@@ -494,7 +496,7 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, '(')
         condition = self.parseExpression(False)
         self.expect(TOK.PUNCTUATOR, ')')
-        self.expect(TOK.PUNCTUATOR, ';')
+        self.expectSemicolon()
         return AST.DoWhileStatement(condition, statement)
 
     def parseWhileStatement(self):
@@ -564,8 +566,7 @@ class Parser:
         if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
             return AST.ContinueStatement(label)
         label = AST.Identifier(self.expect(TOK.ID)[1])
-        if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR, ';')
+        self.expectSemicolon()
         return AST.ContinueStatement(label)
 
     def parseBreakStatement(self):
@@ -574,8 +575,7 @@ class Parser:
         if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
             return AST.BreakStatement(label)
         label = AST.Identifier(self.expect(TOK.ID)[1])
-        if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR, ';')
+        self.expectSemicolon()
         return AST.BreakStatement(label)
 
     def parseReturnStatement(self):
@@ -584,8 +584,7 @@ class Parser:
         if self.LTAhead() or self.match(TOK.PUNCTUATOR, ';') or self.match(TOK.EOF):
             return AST.ReturnStatement(result)
         result = self.parseExpression(False)
-        if not self.LTAhead() and not self.match(TOK.EOF):
-            self.expect(TOK.PUNCTUATOR, ';')
+        self.expectSemicolon()
         return AST.ReturnStatement(result)
 
     def parseWithStatement(self):
@@ -601,12 +600,12 @@ class Parser:
         self.expect(TOK.PUNCTUATOR, '(')
         expr = self.parseExpression(False)
         self.expect(TOK.PUNCTUATOR, ')')
-        self.expect(TOK.PUNCTUATOR,'{')
+        self.expect(TOK.PUNCTUATOR, '{')
         cases = []
         default = [False]
-        while not self.match(TOK.PUNCTUATOR,'}'):
+        while not self.match(TOK.PUNCTUATOR, '}'):
             cases.append(self.parseCaseClause(default))
-        self.expect(TOK.PUNCTUATOR,'}')
+        self.expect(TOK.PUNCTUATOR, '}')
         return AST.SwitchStatement(expr, cases)
 
     def parseCaseClause(self, default):
@@ -616,13 +615,29 @@ class Parser:
             default[0] = True
             self.nextToken()
         else:
-            self.expect(TOK.RESERVED,'case')
+            self.expect(TOK.RESERVED, 'case')
             label = self.parseExpression(False)
         self.expect(TOK.PUNCTUATOR, ':')
         statements = []
-        while not self.match(TOK.RESERVED,'case') and not self.match(TOK.RESERVED,'default') and not self.match(TOK.PUNCTUATOR,'}'):
+        while not self.match(TOK.RESERVED, 'case') and not self.match(TOK.RESERVED, 'default') and not self.match(TOK.PUNCTUATOR, '}'):
             statements.append(self.parseStatement())
         return AST.CaseCause(label, statements)
+
+    def expectSemicolon(self):
+        if self.match(TOK.PUNCTUATOR, ';'):
+            return self.nextToken()
+        if self.LTAhead() or self.match(TOK.PUNCTUATOR, '}') or self.match(TOK.EOF):
+            return TOK.PUNCTUATOR, ';'
+
+        return self.expect(TOK.PUNCTUATOR, ';')
+
+    def parseThrowStatement(self):
+        self.expect(TOK.RESERVED, 'throw')
+        if self.LTAhead():
+            self.error('No line-terminator in throw statement allowed')
+        exception = self.parseExpression(False)
+        self.expectSemicolon()
+        return AST.ThrowStatement(exception)
 
 
 

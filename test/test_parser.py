@@ -552,7 +552,6 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(statements[0]), AST.BreakStatement)
         self.assertEqual(type(statements[1]), AST.BreakStatement)
 
-        #ASI testing
         parser.src = 'break asd\nbreak ddd;'
         statements = parser.buildAST().statements
 
@@ -575,7 +574,6 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(statements[0]), AST.ReturnStatement)
         self.assertEqual(type(statements[1]), AST.ReturnStatement)
 
-        #ASI testing
         parser.src = 'return 22+1\nreturn asd=3;'
         statements = parser.buildAST().statements
 
@@ -614,3 +612,27 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.cases[1].label, None)
         self.assertEqual(len(node.cases[1].statements), 1)
         self.assertEqual(type(node.cases[1].statements[0]), AST.EmptyStatement)
+
+    def test25ThrowStatement(self):
+        parser = Parser()
+        parser.src = 'throw 123;'
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.ThrowStatement)
+
+        #ASI testing
+        parser.src = 'throw 33\n throw 23'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements), 2)
+        self.assertEqual(type(statements[0]), AST.ThrowStatement)
+        self.assertEqual(statements[0].exception.value, '33')
+        self.assertEqual(type(statements[1]), AST.ThrowStatement)
+        self.assertEqual(statements[1].exception.value, '23')
+
+        parser.src = '{throw 22+1} throw asd=3;'
+        statements = parser.buildAST().statements
+
+        self.assertEqual(len(statements),2)
+        self.assertEqual(statements[0].statements[0].exception.op,'+')
+        self.assertEqual(statements[1].exception.left.name,'asd')

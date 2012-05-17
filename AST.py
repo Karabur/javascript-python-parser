@@ -299,3 +299,10 @@ class CaseCause(Node):
         self.statements = statements
         if self.label != None : self.label.parent = self
         for s in self.statements: s.parent = self
+
+
+class ThrowStatement(Node):
+    def __init__(self, exception):
+        super().__init__()
+        self.exception = exception
+        self.exception.parent = self
