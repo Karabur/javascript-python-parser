@@ -409,6 +409,14 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(node.right.op, '+=')
         self.assertEqual(node.right.right.value, '4')
 
+        parser.src = 'b/=33'
+        parser.reset()
+
+        node = parser.parseAssignmentExpression(False)
+        self.assertEqual(type(node), AST.AssignmentExpression)
+        self.assertEqual(node.left.name, 'b')
+        self.assertEqual(node.op, '/=')
+
     def test17parseEmptyExpression(self):
         parser = Parser()
 
@@ -654,3 +662,25 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(node.catchClause, None)
         self.assertEqual(type(node.finClause.block.statements[0]), AST.TryStatement)
+
+    def test27LabelledStatement(self):
+        parser = Parser()
+        parser.src = 'dd: {}'
+
+        node = parser.buildAST().statements[0]
+
+        self.assertEqual(type(node), AST.LabelledStatement)
+        self.assertEqual(node.label.name, 'dd')
+        self.assertEqual(type(node.statement), AST.Block)
+
+    def test28ExpressionStatement(self):
+        parser = Parser()
+        parser.src = '123;a+1;x/=4\nrrr'
+
+        statements = parser.buildAST().statements
+
+        self.assertEqual(type(statements[0]), AST.ExpressionStatement)
+        self.assertEqual(statements[0].expr.value, '123')
+        self.assertEqual(statements[1].expr.op, '+')
+        self.assertEqual(statements[2].expr.op, '/=')
+        self.assertEqual(statements[3].expr.name, 'rrr')

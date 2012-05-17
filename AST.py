@@ -338,3 +338,20 @@ class FinallyClause(Node):
 class DebuggerStatement(Node):
     def __init__(self):
         super().__init__()
+
+
+class LabelledStatement(Node):
+    def __init__(self, label, statement):
+        super().__init__()
+        self.label = label
+        self.statement = statement
+        self.label.parent = self
+        self.statement.parent = self
+
+
+class ExpressionStatement(Node):
+    def __init__(self, expr):
+        super().__init__()
+        self.expr = expr
+        self.expr.parent = self
+

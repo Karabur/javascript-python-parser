@@ -37,7 +37,7 @@ Precedence = [
 
 AssignmentOperators = [
     (TOK.PUNCTUATOR, '*='),
-    (TOK.PUNCTUATOR, '/='),
+    (TOK.DIV_PUNCTUATOR, '/='),
     (TOK.PUNCTUATOR, '%='),
     (TOK.PUNCTUATOR, '+='),
     (TOK.PUNCTUATOR, '-='),
@@ -190,7 +190,7 @@ class Parser:
             self.expectSemicolon()
             return AST.DebuggerStatement()
 
-        self.unexpected()
+        return self.parseLabeledOrExpressionStatement()
 
     def unexpected(self):
         token = self.lookup()
@@ -672,6 +672,14 @@ class Parser:
         block = self.parseBlock()
         return AST.FinallyClause(block)
 
+    def parseLabeledOrExpressionStatement(self):
+        expr = self.parseExpression(False)
+        if type(expr) == AST.Identifier and self.match(TOK.PUNCTUATOR, ':'):
+            self.nextToken()
+            statement = self.parseStatement()
+            return AST.LabelledStatement(expr, statement)
+        self.expectSemicolon()
+        return AST.ExpressionStatement(expr)
 
 
 
