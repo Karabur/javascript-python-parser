@@ -1,16 +1,15 @@
-from JSLexer import Lexer
+from JSParser import Parser
 
 __author__ = 'Robur'
 
 
-file = open('jssrc/script.js', encoding='UTF8')
+file = open('jssrc/jquery.js', encoding='UTF8')
 
 js = file.read()
 file.close()
 
-lexer = Lexer()
-lexer.setSrc(js)
+parser = Parser()
+parser.src = js
 
-print(lexer.__class__)
-print(lexer.getNext())
+tree = parser.buildAST()
 

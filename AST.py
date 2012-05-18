@@ -12,13 +12,17 @@ class ProgramNode(Node):
         self.statements = statements
         for s in self.statements: s.parent = self
 
-class FunctionDeclaration(Node):
+class FunctionExpression(Node):
     def __init__(self,name,arguments,statements):
         super().__init__()
         self.name = name
         self.arguments = arguments
         self.statements = statements
         for s in self.statements: s.parent = self
+
+class FunctionDeclaration(FunctionExpression):
+    def __init__(self,name,arguments,statements):
+        super().__init__(name, arguments, statements)
 
 class Block(Node):
     def __init__(self, statements):

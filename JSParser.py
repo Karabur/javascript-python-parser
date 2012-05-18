@@ -263,8 +263,7 @@ class Parser:
         result = None
         if not newCount: newCount = [0]
         if self.match(TOK.RESERVED, 'function'):
-            #todo: parse function expression
-            pass
+            result = self.parseFunctionExpression()
         else:
             result = self.parsePrimaryExpression()
 
@@ -680,6 +679,25 @@ class Parser:
             return AST.LabelledStatement(expr, statement)
         self.expectSemicolon()
         return AST.ExpressionStatement(expr)
+
+    def parseFunctionExpression(self):
+        self.expect(TOK.RESERVED, 'function')
+        name = None
+        if not self.match(TOK.PUNCTUATOR, '('):
+            name = self.expect(TOK.ID)[1]
+        arguments = []
+        self.expect(TOK.PUNCTUATOR, '(')
+        if self.match(TOK.ID):
+            arguments.append(self.nextToken()[1])
+            while self.match(TOK.PUNCTUATOR, ','):
+                self.nextToken()
+                arguments.append(self.expect(TOK.ID)[1])
+        self.expect(TOK.PUNCTUATOR, ')')
+        self.expect(TOK.PUNCTUATOR, '{')
+        statements = self.parseSourceElements()
+        self.expect(TOK.PUNCTUATOR, '}')
+
+        return AST.FunctionExpression(name, arguments, statements)
 
 
 
