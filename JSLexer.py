@@ -207,6 +207,8 @@ class Lexer:
     #REMode - RegularExpression mode
     def getToken(self, REMode=False, LTMode=False):
         self.prevPos = self.forward
+        self.lastLine = self.line
+        self.lastColumn = self.column
         token = self.getNext(REMode)
         while token[0] == TOK.SINGLE_COMMENT or token[0] == TOK.MULTI_COMMENT or token[0] == TOK.WS\
               or (token[0] == TOK.LT and not LTMode) or (token[0] == TOK.MULTINL_COMMENT and not LTMode):

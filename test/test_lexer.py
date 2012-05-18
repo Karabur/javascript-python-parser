@@ -197,7 +197,7 @@ class LexerTestCase(unittest.TestCase):
 
     def testPos(self):
         lex = Lexer()
-        lex.setSrc('\n123 "asd"\n +\n/123/')
+        lex.setSrc('\n123 {"asd"\n +\n/123/')
 
         lex.getToken()
         pos = lex.getLastTokenPos()
@@ -208,6 +208,11 @@ class LexerTestCase(unittest.TestCase):
         pos = lex.getLastTokenPos()
         self.assertEqual(pos['line'], 2)
         self.assertEqual(pos['column'], 5)
+
+        lex.getToken()
+        pos = lex.getLastTokenPos()
+        self.assertEqual(pos['line'], 2)
+        self.assertEqual(pos['column'], 6)
 
         lex.getToken()
         pos = lex.getLastTokenPos()
