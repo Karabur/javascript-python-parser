@@ -195,5 +195,26 @@ class LexerTestCase(unittest.TestCase):
         lex.rewind()
         self.assertEqual(lex.getToken(False),(TOK.DIV_PUNCTUATOR, '/'))
 
+    def testPos(self):
+        lex = Lexer()
+        lex.setSrc('\n123 "asd"\n +\n/123/')
 
+        lex.getToken()
+        pos = lex.getLastTokenPos()
+        self.assertEqual(pos['line'], 2)
+        self.assertEqual(pos['column'], 1)
 
+        lex.getToken()
+        pos = lex.getLastTokenPos()
+        self.assertEqual(pos['line'], 2)
+        self.assertEqual(pos['column'], 5)
+
+        lex.getToken()
+        pos = lex.getLastTokenPos()
+        self.assertEqual(pos['line'], 3)
+        self.assertEqual(pos['column'], 2)
+
+        lex.getToken()
+        pos = lex.getLastTokenPos()
+        self.assertEqual(pos['line'], 4)
+        self.assertEqual(pos['column'], 1)
