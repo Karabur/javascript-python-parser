@@ -240,6 +240,16 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(type(node.properties[1].setterBody), list)
         self.assertEqual(node.properties[1].paramName, 'val')
 
+        parser.src ='{get :1, set:3+3}'
+        parser.reset()
+
+        node = parser.parsePrimaryExpression()
+        self.assertEqual(type(node), AST.ObjectLiteral)
+        self.assertEqual(node.properties[0].key, 'get')
+        self.assertEqual(node.properties[0].value.value, '1')
+        self.assertEqual(node.properties[1].key, 'set')
+        self.assertEqual(node.properties[1].value.op, '+')
+
 
         parser.src = '({}) ([],{},asd)'
         parser.reset()

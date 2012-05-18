@@ -94,7 +94,8 @@ class Parser:
             return self.lookup()[0] == token and self.lookup()[1] == value
 
     def error(self, msg):
-        raise Exception(msg)
+        pos = self.lexer.getLastTokenPos()
+        raise Exception(msg + ' at line ' + str(pos['line']) + ' column ' + str(pos['column']))
 
 
     def expect(self, token, value=None):
@@ -354,7 +355,7 @@ class Parser:
         while not self.match(TOK.PUNCTUATOR, '}'):
             if self.match(TOK.ID) or self.match(TOK.RESERVED) or self.match(TOK.FUTURE_RESERVED):
                 key = self.nextToken()[1]
-                if key == 'get' or key == 'set':
+                if (key == 'get' or key == 'set') and not self.match(TOK.PUNCTUATOR, ':'):
                     #pass properties to parse function because of tricky parsing of getter-setter
                     #they must be combined to one accessor property
                     self.parseGetSetProperty(key != 'get', properties)
