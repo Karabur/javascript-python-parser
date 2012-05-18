@@ -269,7 +269,6 @@ class Parser:
             result = self.parsePrimaryExpression()
 
         while True:
-            #todo:parse [] . ()
             if self.match(TOK.PUNCTUATOR, '('):
                 if not newCount[0]: return result
                 args = self.parseArguments()
