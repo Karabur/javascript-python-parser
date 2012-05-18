@@ -3,7 +3,7 @@ from JSParser import Parser
 __author__ = 'Robur'
 
 
-file = open('jssrc/jquery.js', encoding='UTF8')
+file = open('jssrc/script.js', encoding='UTF8')
 
 js = file.read()
 file.close()

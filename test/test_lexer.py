@@ -161,6 +161,9 @@ class LexerTestCase(unittest.TestCase):
         self.assertEqual(lex.getToken(), (TOK.STRING, 'dd\u2345'))
         self.assertEqual(lex.getToken(), (TOK.STRING, '"s\x34'))
 
+        lex.setSrc('"\\x0A"')
+        self.assertEqual(lex.getToken(), (TOK.STRING, '\x0A'))
+
         lex.setSrc("'\\0' '\\0a'")
         self.assertEqual(lex.getToken(), (TOK.STRING, '\0'))
         self.assertEqual(lex.getToken(), (TOK.STRING, '\0a'))

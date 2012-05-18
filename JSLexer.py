@@ -63,6 +63,10 @@ def isWS(c):
                  '\u3000']
 
 
+def hexToDec(char):
+    return '0123456789abcdef'.index(char.lower())
+
+
 class Lexer:
     def __init__(self):
         self.state = 0
@@ -304,7 +308,7 @@ class Lexer:
                     return chr(code)
             if self.src[self.forward] == 'x':
                 if isHexDigit(self.src[self.forward + 1]) and isHexDigit(self.src[self.forward + 2]):
-                    code = 16 * int(self.src[self.forward + 1]) + int(self.src[self.forward + 2])
+                    code = 16 * hexToDec(self.src[self.forward + 1]) + hexToDec(self.src[self.forward + 2])
                     self.goForward(3)
                     return chr(code)
             if self.src[self.forward] == '0' and self.forward < len(self.src) - 1 and not self.src[
