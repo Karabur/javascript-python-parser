@@ -220,7 +220,7 @@ class Parser:
             result = AST.AssignmentExpression(result, self.parseAssignmentExpression(noIn), op)
         return result
 
-    def parseLeftHandSideExpression(self, noIn):
+    def parseLeftHandSideExpression(self):
         # LeftHandSideExpression ::
         # (NewExpression | MemberExpression) ...
         result = None
@@ -235,7 +235,7 @@ class Parser:
                 result = AST.Call(result, args)
             elif self.match(TOK.PUNCTUATOR, '['):
                 self.nextToken()
-                property = self.parseExpression(noIn)
+                property = self.parseExpression(False)
                 result = AST.Property(result, property)
                 self.expect(TOK.PUNCTUATOR, ']')
             elif self.match(TOK.PUNCTUATOR, '.'):
@@ -274,6 +274,15 @@ class Parser:
                 args = self.parseArguments()
                 newCount[0] -= 1
                 result = AST.New(result, args)
+            elif self.match(TOK.PUNCTUATOR, '['):
+                self.nextToken()
+                property = self.parseExpression(False)
+                result = AST.Property(result, property)
+                self.expect(TOK.PUNCTUATOR, ']')
+            elif self.match(TOK.PUNCTUATOR, '.'):
+                self.nextToken()
+                propName = self.parseIdentifierName()
+                result = AST.Property(result, propName)
             else:
                 return result
 
@@ -422,7 +431,7 @@ class Parser:
         self.unexpected()
 
     def parsePostfixExpression(self):
-        result = self.parseLeftHandSideExpression(False)
+        result = self.parseLeftHandSideExpression()
         if not self.LTAhead() and self.matchList([(TOK.PUNCTUATOR, '++'), (TOK.PUNCTUATOR, '--')]):
             next = self.nextToken()[1]
             result = AST.PostfixExpression(result, next)

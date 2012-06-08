@@ -95,28 +95,28 @@ class ParserTestCase(unittest.TestCase):
         parser = Parser()
         parser.src = 'a 1'
         parser.reset()
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Identifier)
         self.assertEqual(node.name, 'a')
 
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.NumericLiteral)
         self.assertEqual(node.value, '1')
 
         parser.src = 'a[1] asd[b]'
         parser.reset()
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.object.name, 'a')
         self.assertEqual(node.property.value, '1')
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.object.name, 'asd')
         self.assertEqual(node.property.name, 'b')
 
         parser.src = 'a.b.c'
         parser.reset()
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Property)
         self.assertEqual(node.property.name, 'c')
         self.assertEqual(node.object.property.name, 'b')
@@ -128,17 +128,17 @@ class ParserTestCase(unittest.TestCase):
         parser.src = 'b() c()() d(1)(2,a) '
         parser.reset()
 
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(type(node.expr), AST.Identifier)
         self.assertEqual(node.expr.name, 'b')
 
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(type(node.expr), AST.Call)
         self.assertEqual(node.expr.expr.name, 'c')
 
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(len(node.expr.args), 1)
         self.assertEqual(type(node.expr.args[0]), AST.NumericLiteral)
         self.assertEqual(node.expr.args[0].value, '1')
@@ -151,13 +151,13 @@ class ParserTestCase(unittest.TestCase):
 
         parser.src = 'new a()    new new b(a)(23,3)(12,c,b)'
         parser.reset()
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.New)
         self.assertEqual(type(node.expr), AST.Identifier)
         self.assertEqual(node.expr.name, 'a')
         self.assertEqual(node.args, [])
 
-        node = parser.parseLeftHandSideExpression(False)
+        node = parser.parseLeftHandSideExpression()
         self.assertEqual(type(node), AST.Call)
         self.assertEqual(len(node.args), 3)
         self.assertEqual(type(node.expr), AST.New)
@@ -166,6 +166,14 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(len(node.expr.expr.args), 1)
         self.assertEqual(node.expr.expr.args[0].name, 'a')
 
+        parser.src = 'new a.b(1)'
+        parser.reset()
+        node = parser.parseLeftHandSideExpression()
+        self.assertEqual(type(node), AST.New)
+        self.assertEqual(type(node.expr), AST.Property)
+        self.assertEqual(node.expr.object.name, 'a')
+        self.assertEqual(node.expr.property.name, 'b')
+        self.assertEqual(len(node.args), 1)
 
 
     def test10PrimaryExpression(self):
